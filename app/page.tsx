@@ -1,96 +1,206 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+
+  // Login state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  // Register state
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirm, setRegConfirm] = useState("");
+
+  // 🔥 Login - เด้งไป /event ทันที
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Login:", { loginEmail, loginPassword });
+    router.push("/event");
+  };
+
+  // 🔥 Register - เด้งไป /event ทันที
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (regPassword !== regConfirm) {
+      alert("รหัสผ่านไม่ตรงกัน");
+      return;
+    }
+
+    console.log("Register:", { regName, regEmail, regPassword });
+    router.push("/event");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex flex-col">
-      {/* Navbar */}
-      <nav className="w-full px-4 sm:px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl">
-          <i className="bi bi-rocket-takeoff-fill text-2xl sm:text-3xl"></i>
-          Project 31
-        </div>
-        <div className="hidden sm:flex items-center gap-2">
-          <Link
-            href="/login"
-            className="text-white hover:text-white/80 px-4 py-2 font-medium transition"
-          >
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="bg-white text-purple-600 px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition shadow-md"
-          >
-            Sign Up
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-[#FDF5EC] flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md bg-[#FDF5EC] rounded-3xl p-6 sm:p-8">
         {/* Logo */}
-        <div className="inline-flex items-center justify-center w-20 h-20 sm:w-28 sm:h-28 bg-white/20 backdrop-blur-sm rounded-3xl mb-4 sm:mb-6 shadow-2xl border border-white/30">
-          <i className="bi bi-rocket-takeoff-fill text-white text-4xl sm:text-6xl"></i>
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-[#E85D5D] rounded-full mb-4 shadow-lg">
+            <i className="bi bi-ticket-perforated-fill text-white text-4xl"></i>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Registration & Ticket
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            ระบบลงทะเบียนและจองบัตรงานเลี้ยงรุ่น
+          </p>
         </div>
 
-        {/* Title */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
-          Project 31
-        </h1>
-        <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-8 sm:mb-10 text-center px-4 max-w-2xl">
-          Welcome to my awesome website. Get started by creating an account or signing in.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto px-4 sm:px-0 mb-12">
-          <Link
-            href="/login"
-            className="bg-white text-purple-600 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold hover:bg-gray-100 active:scale-95 transition shadow-lg text-base sm:text-lg text-center flex items-center justify-center gap-2"
+        {/* Tab Switch */}
+        <div className="bg-white rounded-full p-1 flex mb-6 shadow-sm">
+          <button
+            onClick={() => setActiveTab("login")}
+            className={`flex-1 py-2.5 rounded-full text-sm font-medium transition ${
+              activeTab === "login"
+                ? "bg-[#E85D5D] text-white shadow-md"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
-            <i className="bi bi-box-arrow-in-right text-xl"></i>
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="bg-purple-800 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold hover:bg-purple-900 active:scale-95 transition shadow-lg text-base sm:text-lg border-2 border-white/30 text-center flex items-center justify-center gap-2"
+            เข้าสู่ระบบ
+          </button>
+          <button
+            onClick={() => setActiveTab("register")}
+            className={`flex-1 py-2.5 rounded-full text-sm font-medium transition ${
+              activeTab === "register"
+                ? "bg-[#E85D5D] text-white shadow-md"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
-            <i className="bi bi-person-plus-fill text-xl"></i>
-            Register
-          </Link>
+            สมัครสมาชิก
+          </button>
         </div>
 
-        {/* Features */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full max-w-4xl px-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-white/20 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3">
-              <i className="bi bi-shield-check text-white text-2xl"></i>
+        {/* Login Form */}
+        {activeTab === "login" && (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">
+                อีเมล / เบอร์โทร
+              </label>
+              <input
+                type="text"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
+                placeholder="name@email.com"
+                required
+              />
             </div>
-            <h3 className="text-white font-bold text-lg mb-1">Secure</h3>
-            <p className="text-white/80 text-sm">Protected with modern security</p>
-          </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-white/20 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3">
-              <i className="bi bi-lightning-charge-fill text-white text-2xl"></i>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">
+                รหัสผ่าน
+              </label>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
+                placeholder="••••••••"
+                required
+              />
             </div>
-            <h3 className="text-white font-bold text-lg mb-1">Fast</h3>
-            <p className="text-white/80 text-sm">Lightning quick performance</p>
-          </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-white/20 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3">
-              <i className="bi bi-phone-fill text-white text-2xl"></i>
+            <div className="text-right">
+              <a href="#" className="text-sm text-[#E85D5D] hover:underline">
+                ลืมรหัสผ่าน?
+              </a>
             </div>
-            <h3 className="text-white font-bold text-lg mb-1">Responsive</h3>
-            <p className="text-white/80 text-sm">Works on all devices</p>
-          </div>
-        </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="w-full py-4 text-center text-white/70 text-xs sm:text-sm flex items-center justify-center gap-2">
-        <i className="bi bi-heart-fill text-red-300"></i>
-        Made with Next.js + Tailwind CSS
-      </footer>
+            <button
+              type="submit"
+              className="w-full bg-[#E85D5D] text-white font-semibold py-3.5 rounded-xl hover:bg-[#d54f4f] active:scale-95 transition shadow-lg"
+            >
+              เข้าสู่ระบบ
+            </button>
+
+            <div className="bg-[#E8F5E9] border border-green-100 rounded-xl p-3 text-center mt-4">
+              <p className="text-xs text-green-800 leading-relaxed">
+                <i className="bi bi-info-circle-fill text-green-600 mr-1"></i>
+                เข้าครั้งแรก ระบบจะสร้างบัญชีให้อัตโนมัติ
+                <br />
+                หากพบปัญหาติดต่อ Admin
+              </p>
+            </div>
+          </form>
+        )}
+
+        {/* Register Form */}
+        {activeTab === "register" && (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">
+                ชื่อ-นามสกุล
+              </label>
+              <input
+                type="text"
+                value={regName}
+                onChange={(e) => setRegName(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
+                placeholder="เช่น สมชาย ใจดี"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">
+                อีเมล
+              </label>
+              <input
+                type="email"
+                value={regEmail}
+                onChange={(e) => setRegEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
+                placeholder="name@email.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">
+                รหัสผ่าน
+              </label>
+              <input
+                type="password"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
+                placeholder="อย่างน้อย 6 ตัว"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">
+                ยืนยันรหัสผ่าน
+              </label>
+              <input
+                type="password"
+                value={regConfirm}
+                onChange={(e) => setRegConfirm(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-[#E85D5D] text-white font-semibold py-3.5 rounded-xl hover:bg-[#d54f4f] active:scale-95 transition shadow-lg"
+            >
+              สมัครสมาชิก
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

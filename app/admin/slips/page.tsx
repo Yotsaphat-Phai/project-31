@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import AdminHeader from '../_components/AdminHeader';
 import RejectReasonSheet from '../_sheets/RejectReasonSheet';
-import { initialSlips } from '../_lib/mockData';
+import { useAdminStore } from '../_lib/AdminStore';
 import type { Slip, SlipStatus } from '../_lib/types';
 import { baht } from '../_lib/utils';
 
@@ -15,7 +15,7 @@ const TAB_LABEL: Record<SlipStatus, string> = {
 
 /** 2) ตรวจสลิป (+ แผงเหตุผลที่ปฏิเสธ) */
 export default function SlipReview() {
-  const [slips, setSlips] = useState<Slip[]>(initialSlips);
+  const { slips, setSlips } = useAdminStore();
   const [tab, setTab] = useState<SlipStatus>('pending');
   const [rejecting, setRejecting] = useState<Slip | null>(null);
 

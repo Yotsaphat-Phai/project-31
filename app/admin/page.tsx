@@ -3,20 +3,23 @@
 import Link from 'next/link';
 import { Settings, Users, Ticket, Coins, FileText } from 'lucide-react';
 import AdminHeader from './_components/AdminHeader';
-import { dashboardStats, initialStores } from './_lib/mockData';
+import { dashboardStats } from './_lib/mockData';
+import { useAdminStore } from './_lib/AdminStore';
 import { fmt } from './_lib/utils';
 
 const BAR_COLORS = ['#F07060', '#2A9D8F', '#D99A1F', '#5E8BC9'];
 
 /** 1) Admin Dashboard (ภาพรวม) */
 export default function AdminDashboard() {
+  const { stores, slips } = useAdminStore();
+  const pendingSlips = slips.filter((s) => s.status === 'pending').length;
   const stats = [
     { label: 'ผู้เข้าร่วม', value: fmt(dashboardStats.attendees), icon: Users, color: '#F07060' },
     { label: 'ยอดขายบัตร', value: `${fmt(dashboardStats.ticketSales)} ฿`, icon: Ticket, color: '#2A9D8F' },
     { label: 'TOKEN ที่ใช้', value: fmt(dashboardStats.tokenUsed), icon: Coins, color: '#D99A1F' },
-    { label: 'รอตรวจสลิป', value: String(dashboardStats.pendingSlips), icon: FileText, color: '#5E8BC9' },
+    { label: 'รอตรวจสลิป', value: String(pendingSlips), icon: FileText, color: '#5E8BC9' },
   ];
-  const max = Math.max(...initialStores.map((s) => s.totalToken));
+  const max = Math.max(1, ...stores.map((s) => s.totalToken));
 
   return (
     <>
@@ -47,7 +50,7 @@ export default function AdminDashboard() {
         <section className="card" style={{ marginTop: 14, padding: 16 }}>
           <h3 style={{ margin: '0 0 12px', fontSize: 14 }}>ยอดขายแต่ละร้าน (TOKEN)</h3>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: 150 }}>
-            {initialStores.map((s, i) => (
+            {stores.map((s, i) => (
               <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <div
                   title={`${fmt(s.totalToken)} TOKEN`}
@@ -61,7 +64,7 @@ export default function AdminDashboard() {
 
         {/* แบนเนอร์สลิปรอตรวจ */}
         <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, background: '#FBE6DF', borderColor: '#FBE6DF' }}>
-          <strong style={{ fontSize: 13 }}>มีสลิปรอตรวจสอบ {dashboardStats.pendingSlips} รายการ</strong>
+          <strong style={{ fontSize: 13 }}>มีสลิปรอตรวจสอบ {pendingSlips} รายการ</strong>
           <Link href="/admin/slips" className="status coral" style={{ background: '#F07060', color: '#fff', textDecoration: 'none' }}>
             ดูทั้งหมด
           </Link>

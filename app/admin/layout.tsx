@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import AdminBottomNav from './_components/AdminBottomNav';
+import { AdminStoreProvider } from './_lib/AdminStore';
 import './admin.css';
 
 /**
@@ -8,9 +9,11 @@ import './admin.css';
  */
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="admin-shell">
-      <AdminBottomNav />
-      <div className="admin-content">{children}</div>
-    </div>
+    <AdminStoreProvider>
+      <div className="admin-shell">
+        <AdminBottomNav />
+        <div className="admin-content">{children}</div>
+      </div>
+    </AdminStoreProvider>
   );
 }

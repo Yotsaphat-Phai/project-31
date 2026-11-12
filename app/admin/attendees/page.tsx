@@ -6,14 +6,14 @@ import AdminHeader from '../_components/AdminHeader';
 import Avatar from '../_components/Avatar';
 import FilterChips from '../_components/FilterChips';
 import AttendeeDetailSheet from '../_sheets/AttendeeDetailSheet';
-import { attendees as seed } from '../_lib/mockData';
+import { useAdminStore } from '../_lib/AdminStore';
 import type { Attendee } from '../_lib/types';
 
 type Filter = 'all' | 'in' | 'out';
 
 /** 3) ผู้เข้าร่วม (+ แผงรายละเอียด / เช็กอินให้) */
 export default function Attendees() {
-  const [list, setList] = useState<Attendee[]>(seed);
+  const { attendees: list, setAttendees: setList } = useAdminStore();
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [selected, setSelected] = useState<Attendee | null>(null);

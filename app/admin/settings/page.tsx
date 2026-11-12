@@ -1,15 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminHeader from '../_components/AdminHeader';
 import Toggle from '../_components/Toggle';
-import { initialEvent } from '../_lib/mockData';
+import { useAdminStore } from '../_lib/AdminStore';
 import type { EventConfig } from '../_lib/types';
 
 /** 6) ตั้งค่างาน */
 export default function EventSettings() {
-  const [cfg, setCfg] = useState<EventConfig>(initialEvent);
+  const { event, setEvent } = useAdminStore();
+  const [cfg, setCfg] = useState<EventConfig>(event);
   const [saved, setSaved] = useState(false);
+
+  // ค่าที่จำไว้โหลดเสร็จทีหลัง → ซิงก์เข้าฟอร์ม
+  useEffect(() => setCfg(event), [event]);
 
   const set = <K extends keyof EventConfig>(k: K, v: EventConfig[K]) => {
     setCfg((p) => ({ ...p, [k]: v }));
@@ -55,7 +59,10 @@ export default function EventSettings() {
           </div>
         </section>
 
-        <button className="btn btn-blue" style={{ marginTop: 16 }} onClick={() => setSaved(true)}>
+        <button className="btn btn-blue" style={{ marginTop: 16 }} onClick={() => {
+            setEvent(cfg);
+            setSaved(true);
+          }}>
           บันทึกการตั้งค่า
         </button>
         {saved && <p className="note" style={{ color: '#2A9D8F' }}>บันทึกเรียบร้อยแล้ว</p>}

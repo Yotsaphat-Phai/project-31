@@ -34,7 +34,7 @@ function PaymentContent() {
       alert("กรุณาแนบสลิปการโอนเงินก่อน");
       return;
     }
-    // 🔗 ไปหน้า /event/ticket
+    //  ไปหน้า /event/ticket
     router.push("/event/ticket");
   };
 

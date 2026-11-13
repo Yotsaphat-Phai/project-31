@@ -22,11 +22,11 @@ export default function EventPage() {
 
         {/* Event Image */}
         <div className="bg-[#FFE5DC] rounded-2xl p-4 mb-3 relative h-28 flex items-center justify-center">
-          <div className="absolute top-1 left-4 text-xl">🎈</div>
-          <div className="absolute top-0 right-8 text-lg">🎈</div>
-          <div className="absolute top-4 right-2 text-xl">🎈</div>
+          <div className="absolute top-1 left-4 text-xl"></div>
+          <div className="absolute top-0 right-8 text-lg"></div>
+          <div className="absolute top-4 right-2 text-xl"></div>
           <div className="bg-[#E85D5D] rounded-xl p-3 shadow-lg">
-            <span className="text-white text-3xl">💳</span>
+            <span className="text-white text-3xl"></span>
           </div>
         </div>
 
@@ -35,16 +35,16 @@ export default function EventPage() {
           งานเลี้ยงรุ่น Class of 20XX
         </h2>
         <div className="inline-block bg-[#FFE5DC] text-[#E85D5D] text-[10px] font-semibold px-2 py-0.5 rounded-full mb-3">
-          🎓 มัธยมปลายคริสต์ - ภาคเขียว
+          บัตรประเภทเดียวราคาเดียว
         </div>
 
         {/* Info Grid */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           {[
-            { icon: "📅", label: "วันที่", value: "20 ธ.ค. • 18:00" },
-            { icon: "📍", label: "สถานที่", value: "ห้องสัมมนา" },
-            { icon: "🏷️", label: "ราคา", value: `฿${pricePerTicket}` },
-            { icon: "🎟️", label: "บัตรเหลือ", value: "126 ใบ" },
+            { icon: "", label: "วันที่", value: "20 ธ.ค. • 18:00" },
+            { icon: "", label: "สถานที่", value: "ห้องสัมมนา" },
+            { icon: "", label: "ราคา", value: `฿${pricePerTicket}` },
+            { icon: "", label: "บัตรเหลือ", value: "126 ใบ" },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-2">
               <div className="w-8 h-8 bg-[#FFE5DC] rounded-lg flex items-center justify-center flex-shrink-0">
@@ -90,7 +90,7 @@ export default function EventPage() {
             href={`/event/participants?qty=${quantity}&total=${total}`}
             className="bg-[#E85D5D] text-white text-sm font-semibold px-5 py-2.5 rounded-lg active:scale-95 shadow-lg flex items-center gap-1.5"
           >
-            🎫 ซื้อบัตร
+             ซื้อบัตร
           </Link>
         </div>
 

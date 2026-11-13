@@ -1,0 +1,14 @@
+/* แอนิเมชันเส้นสแกนของหน้า Staff */
+@keyframes staff-scanline {
+  0%,
+  100% {
+    transform: translateY(-70px);
+  }
+  50% {
+    transform: translateY(70px);
+  }
+}
+
+.animate-scanline {
+  animation: staff-scanline 2.4s ease-in-out infinite;
+}

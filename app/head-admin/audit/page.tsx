@@ -99,8 +99,8 @@ export default function AuditLogPage() {
         </div>
       </div>
 
-           <nav className="bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around">
-        <Link href="#" className="flex flex-col items-center text-gray-400 py-1">
+      <nav className="bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around">
+        <Link href="/head-admin/report" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">📊</span>
           <span className="text-[10px] mt-0.5">รายงาน</span>
         </Link>

@@ -39,10 +39,15 @@ export default function TokenAdjustPage() {
       return;
     }
 
-    const sign = actionType === "add" ? "+" : "−";
-    alert(
-      `ส่งตรวจสอบแล้ว\nผู้ใช้: ${selectedUser.name}\nรายการ: ${sign}${amount} TOKEN\nเหตุผล: ${reason}`
-    );
+    const params = new URLSearchParams({
+      user: selectedUser.name,
+      type: actionType,
+      amount: String(parseInt(amount)),
+      before: String(selectedUser.balance),
+      reason: reason,
+    });
+
+    router.push(`/head-admin/token/confirm?${params.toString()}`);
   };
 
   return (
@@ -201,7 +206,7 @@ export default function TokenAdjustPage() {
 
       {/* Bottom Navigation */}
       <nav className="bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around">
-        <Link href="#" className="flex flex-col items-center text-gray-400 py-1">
+        <Link href="/head-admin/report" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">📊</span>
           <span className="text-[10px] mt-0.5">รายงาน</span>
         </Link>

@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Role = "Admin" | "Staff" | "Vendor";
 type FilterType = "ทั้งหมด" | Role;
 
 export default function HeadAdminPage() {
+  const router = useRouter();
   const [filter, setFilter] = useState<FilterType>("ทั้งหมด");
-  
+
   const [accounts, setAccounts] = useState([
     { id: 1, name: "ณัฐพงศ์ พรมมาตร", role: "Admin" as Role, active: true, color: "bg-blue-400" },
     { id: 2, name: "ลลิตภัทร กันทา", role: "Staff" as Role, active: true, color: "bg-green-500" },
@@ -55,7 +57,7 @@ export default function HeadAdminPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <button className="text-gray-700 text-xl">‹</button>
+              <button onClick={() => router.back()} className="text-gray-700 text-xl">‹</button>
               <h1 className="text-lg font-bold text-gray-800">Head Admin</h1>
             </div>
             <span className="bg-[#9E4B8E] text-white text-xs font-semibold px-3 py-1 rounded-full">
@@ -85,13 +87,9 @@ export default function HeadAdminPage() {
                 stroke="#9E4B8E"
                 strokeWidth="2.5"
               />
-              <circle cx="10" cy="80" r="3" fill="#9E4B8E" />
-              <circle cx="60" cy="60" r="3" fill="#9E4B8E" />
-              <circle cx="110" cy="40" r="3" fill="#9E4B8E" />
-              <circle cx="160" cy="50" r="3" fill="#9E4B8E" />
-              <circle cx="210" cy="25" r="3" fill="#9E4B8E" />
-              <circle cx="260" cy="20" r="3" fill="#9E4B8E" />
-              <circle cx="290" cy="15" r="3" fill="#9E4B8E" />
+              {[[10,80],[60,60],[110,40],[160,50],[210,25],[260,20],[290,15]].map(([x, y]) => (
+                <circle key={x} cx={x} cy={y} r="3" fill="#9E4B8E" />
+              ))}
             </svg>
           </div>
 
@@ -166,20 +164,26 @@ export default function HeadAdminPage() {
           </div>
 
           {/* Action Buttons */}
-          <button className="w-full bg-[#9E4B8E] text-white text-sm font-semibold py-3.5 rounded-xl shadow-lg mb-2 active:scale-95 transition">
+          <Link
+            href="/head-admin/token"
+            className="block text-center w-full bg-[#9E4B8E] text-white text-sm font-semibold py-3.5 rounded-xl shadow-lg mb-2 active:scale-95 transition"
+          >
             ปรับ TOKEN / คืนเงิน กรณีมีปัญหา
-          </button>
+          </Link>
 
-          <button className="w-full bg-white border-2 border-[#9E4B8E] text-[#9E4B8E] text-sm font-semibold py-3.5 rounded-xl active:scale-95 transition">
+          <Link
+            href="/head-admin/audit"
+            className="block text-center w-full bg-white border-2 border-[#9E4B8E] text-[#9E4B8E] text-sm font-semibold py-3.5 rounded-xl active:scale-95 transition"
+          >
             ดู Audit Log
-          </button>
+          </Link>
 
         </div>
       </div>
 
       {/* Bottom Navigation */}
       <nav className="bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around">
-        <Link href="#" className="flex flex-col items-center text-gray-400 py-1">
+        <Link href="/head-admin/report" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">📊</span>
           <span className="text-[10px] mt-0.5">รายงาน</span>
         </Link>
@@ -187,11 +191,11 @@ export default function HeadAdminPage() {
           <span className="text-xl">👥</span>
           <span className="text-[10px] mt-0.5 font-semibold">บัญชี</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center text-gray-400 py-1">
+        <Link href="/head-admin/audit" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">📋</span>
           <span className="text-[10px] mt-0.5">Audit Log</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center text-gray-400 py-1">
+        <Link href="/head-admin/token" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">💾</span>
           <span className="text-[10px] mt-0.5">ปรับ TOKEN</span>
         </Link>

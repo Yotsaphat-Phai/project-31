@@ -2,17 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { login, homeFor } from "../_lib/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
+  const [error, setError] = useState("");
+
+  // เช็คกับบัญชีใน localStorage แล้วพาไปหน้าตาม role ของบัญชี
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { email, password, rememberMe });
-    alert(`Login Success!\nEmail: ${email}`);
+    setError("");
+    try {
+      const user = login(email, password);
+      router.push(homeFor(user.role));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "เข้าสู่ระบบไม่สำเร็จ");
+    }
   };
 
   return (
@@ -30,6 +41,12 @@ export default function LoginPage() {
             Sign in to your account
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">

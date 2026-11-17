@@ -3,18 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type FilterType = "ทั้งหมด" | "TOKEN" | "บัญชี" | "คืนเงิน";
+type FilterType = "ทั้งหมด" | "บัญชี";
 
 export default function AuditLogPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("ทั้งหมด");
 
   const logs = [
-    { id: 1, action: "ปรับ TOKEN +500", user: "ลลิตภัทร กันทา", reason: "ระบบขัดข้อง", by: "Head Admin", time: "14:32", type: "TOKEN" as FilterType, color: "bg-[#9E4B8E]", sign: "+" },
-    { id: 2, action: "คืนเงิน 1,200 TOKEN", user: "ตั๋ว #T-0482", reason: "ยกเลิกบัตร", by: "Head Admin", time: "13:10", type: "คืนเงิน" as FilterType, color: "bg-[#E85D5D]", sign: "↩" },
-    { id: 3, action: "ระงับบัญชี Staff", user: "สมชาย ใจดี", reason: "", by: "Head Admin", time: "11:45", type: "บัญชี" as FilterType, color: "bg-gray-400", sign: "⛔" },
-    { id: 4, action: "เพิ่มบัญชี Staff", user: "มานี รักงาน", reason: "", by: "Head Admin", time: "10:20", type: "บัญชี" as FilterType, color: "bg-[#2D9D8F]", sign: "+" },
-    { id: 5, action: "ปรับ TOKEN −200", user: "ปรีชา สุขใจ", reason: "คืนส่วนเกิน", by: "Head Admin", time: "09:05", type: "TOKEN" as FilterType, color: "bg-[#9E4B8E]", sign: "−" },
+    { id: 1, action: "ระงับบัญชี Staff", user: "สมชาย ใจดี", reason: "", by: "Head Admin", time: "11:45", type: "บัญชี" as FilterType, color: "bg-gray-400", sign: "⛔" },
+    { id: 2, action: "เพิ่มบัญชี Staff", user: "มานี รักงาน", reason: "", by: "Head Admin", time: "10:20", type: "บัญชี" as FilterType, color: "bg-[#2D9D8F]", sign: "+" },
+    { id: 3, action: "เพิ่มบัญชี Vendor", user: "ร้านขนมหวาน", reason: "", by: "Head Admin", time: "09:30", type: "บัญชี" as FilterType, color: "bg-[#2D9D8F]", sign: "+" },
+    { id: 4, action: "ระงับบัญชี Vendor", user: "ร้านก๋วยเตี๋ยว", reason: "", by: "Head Admin", time: "09:05", type: "บัญชี" as FilterType, color: "bg-gray-400", sign: "⛔" },
   ];
 
   const filtered = logs.filter((log) => {
@@ -49,7 +48,7 @@ export default function AuditLogPage() {
           />
 
           <div className="flex gap-1.5 mb-4 overflow-x-auto">
-            {(["ทั้งหมด", "TOKEN", "บัญชี", "คืนเงิน"] as FilterType[]).map((tab) => (
+            {(["ทั้งหมด", "บัญชี"] as FilterType[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
@@ -111,10 +110,6 @@ export default function AuditLogPage() {
         <Link href="/head-admin/audit" className="flex flex-col items-center text-[#9E4B8E] py-1">
           <span className="text-xl">📋</span>
           <span className="text-[10px] mt-0.5 font-semibold">Audit Log</span>
-        </Link>
-        <Link href="/head-admin/token" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">💾</span>
-          <span className="text-[10px] mt-0.5">ปรับ TOKEN</span>
         </Link>
       </nav>
     </div>

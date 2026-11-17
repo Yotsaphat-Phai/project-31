@@ -275,10 +275,6 @@ export default function HeadAdminPage() {
           <span className="text-xl">📋</span>
           <span className="text-[10px] mt-0.5">Audit Log</span>
         </Link>
-        <Link href="/head-admin/token" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">💾</span>
-          <span className="text-[10px] mt-0.5">ปรับ TOKEN</span>
-        </Link>
       </nav>
     </div>
   );

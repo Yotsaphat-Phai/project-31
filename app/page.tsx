@@ -74,6 +74,7 @@ export default function Home() {
         <div className="bg-white rounded-full p-1 flex mb-6 shadow-sm">
           <button
             onClick={() => switchTab("login")}
+            suppressHydrationWarning
             className={`flex-1 py-2.5 rounded-full text-sm font-medium transition ${
               activeTab === "login"
                 ? "bg-[#E85D5D] text-white shadow-md"
@@ -84,6 +85,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => switchTab("register")}
+            suppressHydrationWarning
             className={`flex-1 py-2.5 rounded-full text-sm font-medium transition ${
               activeTab === "register"
                 ? "bg-[#E85D5D] text-white shadow-md"
@@ -112,6 +114,7 @@ export default function Home() {
                 type="text"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
+                suppressHydrationWarning
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
                 placeholder="name@email.com"
                 required
@@ -126,6 +129,7 @@ export default function Home() {
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
+                suppressHydrationWarning
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
                 placeholder="••••••••"
                 required
@@ -140,6 +144,7 @@ export default function Home() {
 
             <button
               type="submit"
+              suppressHydrationWarning
               className="w-full bg-[#E85D5D] text-white font-semibold py-3.5 rounded-xl hover:bg-[#d54f4f] active:scale-95 transition shadow-lg"
             >
               เข้าสู่ระบบ
@@ -167,6 +172,7 @@ export default function Home() {
                 type="text"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
+                suppressHydrationWarning
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
                 placeholder="เช่น สมชาย ใจดี"
                 required
@@ -181,6 +187,7 @@ export default function Home() {
                 type="email"
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
+                suppressHydrationWarning
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
                 placeholder="name@email.com"
                 required
@@ -195,6 +202,7 @@ export default function Home() {
                 type="password"
                 value={regPassword}
                 onChange={(e) => setRegPassword(e.target.value)}
+                suppressHydrationWarning
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
                 placeholder="อย่างน้อย 6 ตัว"
                 required
@@ -210,6 +218,7 @@ export default function Home() {
                 type="password"
                 value={regConfirm}
                 onChange={(e) => setRegConfirm(e.target.value)}
+                suppressHydrationWarning
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#E85D5D] focus:border-transparent outline-none transition text-gray-800"
                 placeholder="••••••••"
                 required
@@ -218,6 +227,7 @@ export default function Home() {
 
             <button
               type="submit"
+              suppressHydrationWarning
               className="w-full bg-[#E85D5D] text-white font-semibold py-3.5 rounded-xl hover:bg-[#d54f4f] active:scale-95 transition shadow-lg"
             >
               สมัครสมาชิก

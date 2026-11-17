@@ -1,104 +1,173 @@
 "use client";
 
+// หน้าแรกของ Vendor หลัง login: Dashboard ร้านค้า
+// - สแกน QR รับชำระ → /vendor/scan
+// - รับชำระเร็ว (50/100/200/500) → /vendor/scan?amount=X
+// - ดูทั้งหมด → /vendor/history
+// - Bottom nav: หน้าแรก / สแกน / ประวัติ / บัญชีร้าน
+
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import QRCode from "react-qr-code";
+import { getCurrentUser } from "../_lib/auth";
+import { shops, type Shop } from "../_lib/mock";
 
-// ===== Icons (SVG) =====
-function StoreIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.8}
-      stroke="currentColor"
-      className={className}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
-      />
-    </svg>
+const noopSubscribe = () => () => {};
+
+// ร้านของ vendor ที่ login อยู่ (ยังไม่ login / ไม่พบ → ร้านแรกใน mock)
+function useMyShop(): Shop {
+  const vendorId = useSyncExternalStore(
+    noopSubscribe,
+    () => getCurrentUser()?.id ?? "",
+    () => ""
   );
+  return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
 }
 
-function ClipboardIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.8}
-      stroke="currentColor"
-      className={className}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"
-      />
-    </svg>
-  );
-}
+// ===== Mock: ยอดรวมวันนี้ + รายการล่าสุด (ภายหลังย้ายไป mock.ts ได้) =====
+const TODAY_TOTAL = 4250;
 
-export default function VendorPage() {
-  // placeholder — เปลี่ยนเป็นข้อมูลจริงทีหลัง เช่น vendor id, payment url
-  const qrValue = "vendor:shop-cold-drink:001";
+type RecentTx = {
+  id: string;
+  customerName: string;
+  amount: number;
+  time: string;
+  status: "success";
+};
+
+const RECENT_TX: RecentTx[] = [
+  { id: "T001", customerName: "PIZZARTH K.", amount: 350, time: "09:50", status: "success" },
+];
+
+const QUICK_AMOUNTS = [50, 100, 200, 500] as const;
+
+export default function VendorHomePage() {
+  const shop = useMyShop();
 
   return (
     <div className="min-h-screen w-screen bg-gray-200 flex items-center justify-center p-4">
-      {/* Phone Container */}
-      <div className="w-full max-w-sm h-[844px] bg-[#FDF5EC] rounded-[40px] shadow-2xl overflow-hidden flex flex-col">
-
-        {/* Main content */}
-        <div className="flex-1 overflow-y-auto p-4">
-
-          {/* Vendor badge อย่างเดียว (ลบชื่อร้านออก) */}
-          <div className="flex items-center justify-end mb-4">
-            <span className="bg-[#C8A057] text-white text-xs font-semibold px-3 py-1 rounded-full">
-              Vendor
-            </span>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
-            <div className="aspect-square bg-white rounded-lg flex items-center justify-center p-3">
-              <QRCode
-                value={qrValue}
-                size={256}
-                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                viewBox="0 0 256 256"
-                level="H"
-              />
+      {/* Phone Container (match other vendor pages) */}
+      <div className="w-full max-w-sm h-[844px] bg-[#FAF4EC] rounded-[40px] shadow-2xl overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto px-5 pt-6 pb-4">
+          {/* Header: shop code + name + status dot */}
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <p className="text-xs text-gray-400">{shop.code}</p>
+              <h1 className="text-2xl font-bold text-gray-900 mt-1">
+                {shop.name}
+              </h1>
+            </div>
+            <div
+              className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center"
+              title="สถานะร้าน: เปิดอยู่"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E85D5D]" />
             </div>
           </div>
 
-          {/* ลบปุ่มสแกน QR ออก เหลือแค่ยอดรวม */}
-          <div className="mb-6">
-            <p className="text-xs text-gray-500">รวมที่รับ (ล่าสุดในวันนี้)</p>
-            <p className="text-2xl font-bold text-[#C8A057]">95 TOKEN</p>
+          {/* Today's total card */}
+          <div className="bg-white border border-[#F0E6D2] rounded-2xl px-5 py-4 mb-5 text-center shadow-sm">
+            <p className="text-sm text-gray-500">ยอดรวมวันนี้</p>
+            <p className="mt-1">
+              <span className="text-3xl font-extrabold text-gray-900">
+                {TODAY_TOTAL.toLocaleString()}
+              </span>{" "}
+              <span className="text-sm font-semibold text-[#C8A057]">TOKEN</span>
+            </p>
           </div>
 
+          {/* Scan QR button → /vendor/scan */}
+          <Link
+            href="/vendor/scan"
+            className="w-full flex items-center justify-center gap-3 bg-[#D9A441] hover:bg-[#c8942f] active:scale-[0.98] transition text-white font-semibold py-4 rounded-2xl mb-6 shadow-md"
+          >
+            <i className="bi bi-qr-code text-2xl" />
+            <span className="text-base">สแกน QR รับชำระ</span>
+          </Link>
+
+          {/* Quick receive amounts */}
+          <p className="text-sm font-semibold text-gray-800 mb-2">รับชำระเร็ว</p>
+          <div className="grid grid-cols-4 gap-2 mb-6">
+            {QUICK_AMOUNTS.map((amt) => (
+              <Link
+                key={amt}
+                href={`/vendor/scan?amount=${amt}`}
+                className="bg-white border border-gray-200 rounded-xl py-3 text-center text-gray-800 font-medium hover:border-[#D9A441] hover:text-[#D9A441] active:scale-95 transition"
+              >
+                {amt}
+              </Link>
+            ))}
+          </div>
+
+          {/* Recent transactions */}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold text-gray-800">รายการล่าสุด</p>
+            <Link
+              href="/vendor/history"
+              className="text-sm text-[#D9A441] hover:underline flex items-center gap-0.5"
+            >
+              ดูทั้งหมด <span className="text-base leading-none">›</span>
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-2xl divide-y divide-gray-100 shadow-sm">
+            {RECENT_TX.length === 0 ? (
+              <p className="text-center text-sm text-gray-400 py-6">
+                ยังไม่มีรายการ
+              </p>
+            ) : (
+              RECENT_TX.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {tx.customerName}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {tx.time} · รับชำระสำเร็จ
+                    </p>
+                  </div>
+                  <p className="font-bold text-emerald-600">
+                    +{tx.amount.toLocaleString()}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Bottom Navigation — SVG icons + hover effect */}
-        <nav className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-around">
+        {/* Bottom Navigation (matches /vendor/account) */}
+        <nav className="bg-[#FAF4EC] px-6 py-4 flex items-center justify-around text-gray-900 border-t border-[#EADFCB]">
           <Link
             href="/vendor"
-            className="group flex flex-col items-center py-1 px-6 text-[#C8A057] transition-colors"
+            aria-label="หน้าแรก"
+            className="p-2 text-[#D9A441]"
           >
-            <StoreIcon className="w-6 h-6 transition-transform group-hover:scale-110" />
-            <span className="text-xs mt-0.5 font-semibold">ขายสินค้า</span>
+            <i className="bi bi-house-fill text-2xl" />
           </Link>
           <Link
-            href="#"
-            className="group flex flex-col items-center py-1 px-6 text-gray-400 hover:text-[#C8A057] transition-colors"
+            href="/vendor/scan"
+            aria-label="สแกน / ขายสินค้า"
+            className="p-2 hover:text-[#D9A441] transition-colors"
           >
-            <ClipboardIcon className="w-6 h-6 transition-transform group-hover:scale-110" />
-            <span className="text-xs mt-0.5 group-hover:font-semibold">ประวัติรายการ</span>
+            <i className="bi bi-grid text-2xl" />
+          </Link>
+          <Link
+            href="/vendor/history"
+            aria-label="ประวัติรายการ"
+            className="p-2 hover:text-[#D9A441] transition-colors"
+          >
+            <i className="bi bi-list text-3xl" />
+          </Link>
+          <Link
+            href="/vendor/account"
+            aria-label="บัญชีร้านค้า"
+            className="p-2 hover:text-[#D9A441] transition-colors"
+          >
+            <i className="bi bi-person text-2xl" />
           </Link>
         </nav>
-
       </div>
     </div>
   );

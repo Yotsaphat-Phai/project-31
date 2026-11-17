@@ -107,7 +107,7 @@ export default function TicketPage() {
           <span className="text-xl">🎫</span>
           <span className="text-[10px] mt-0.5 font-semibold">บัตรของฉัน</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center text-gray-400 py-1">
+        <Link href="/token" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">🪙</span>
           <span className="text-[10px] mt-0.5">TOKEN</span>
         </Link>

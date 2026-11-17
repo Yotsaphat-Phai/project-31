@@ -85,7 +85,7 @@ function UserBottomNav({ active }: { active: "home" | "ticket" | "token" | "prof
   const items = [
     { key: "home", href: "/events", label: "หน้าแรก", icon: "bi-house-door-fill", color: "#E07A68" },
     { key: "ticket", href: "/event/ticket", label: "บัตรของฉัน", icon: "bi-ticket-perforated-fill", color: "#EBB654" },
-    { key: "token", href: "#", label: "TOKEN", icon: "", color: "#D9A53B" },
+    { key: "token", href: "/token", label: "TOKEN", icon: "", color: "#D9A53B" },
     { key: "profile", href: "#", label: "โปรไฟล์", icon: "bi-person-fill", color: "#A86BA6" },
   ] as const;
   return (

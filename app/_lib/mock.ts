@@ -150,3 +150,18 @@ export const events: EventItem[] = [
     ticketsLeft: 126,
   },
 ];
+
+// ===== ร้านค้า (หน้า /vendor/account) — ผูกกับบัญชี vendor ด้วย vendorId =====
+export type Shop = {
+  vendorId: string;   // id ของบัญชีใน vendors
+  code: string;       // รหัสร้าน เช่น VCK001
+  name: string;
+  category: string;
+  token: number;      // Token คงเหลือ (บาท)
+  staffCount: number;
+};
+
+export const shops: Shop[] = [
+  { vendorId: "V001", code: "VCK001", name: "ร้านน้ำเย็น", category: "เครื่องดื่ม", token: 84000, staffCount: 3 },
+  { vendorId: "V002", code: "VCK002", name: "ร้านขนมหวาน", category: "ของหวาน", token: 12500, staffCount: 2 },
+];

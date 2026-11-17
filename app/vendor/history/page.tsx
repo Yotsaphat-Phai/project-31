@@ -199,21 +199,19 @@ export default function VendorHistoryPage() {
           )}
         </div>
 
-        {/* Bottom Navigation — ขายสินค้าไป /vendor/scan / ประวัติรายการ active */}
-        <nav className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-around">
-          <Link
-            href="/vendor/scan"
-            className="group flex flex-col items-center py-1 px-6 text-gray-400 hover:text-[#C8A057] transition-colors"
-          >
-            <StoreIcon className="w-6 h-6 transition-transform group-hover:scale-110" />
-            <span className="text-xs mt-0.5 group-hover:font-semibold">ขายสินค้า</span>
+        {/* Bottom Navigation — 4 icons (consistent with other vendor pages) */}
+        <nav className="bg-white px-6 py-4 flex items-center justify-around text-gray-900 border-t border-gray-200">
+          <Link href="/vendor" aria-label="หน้าแรก" className="p-2 hover:text-[#D9A441] transition-colors">
+            <i className="bi bi-house text-2xl" />
           </Link>
-          <Link
-            href="/vendor/history"
-            className="group flex flex-col items-center py-1 px-6 text-[#C8A057] transition-colors"
-          >
-            <ClipboardIcon className="w-6 h-6 transition-transform group-hover:scale-110" />
-            <span className="text-xs mt-0.5 font-semibold">ประวัติรายการ</span>
+          <Link href="/vendor/scan" aria-label="สแกน / ขายสินค้า" className="p-2 hover:text-[#D9A441] transition-colors">
+            <i className="bi bi-grid text-2xl" />
+          </Link>
+          <Link href="/vendor/history" aria-label="ประวัติรายการ" className="p-2 text-[#D9A441]">
+            <i className="bi bi-list text-3xl" />
+          </Link>
+          <Link href="/vendor/account" aria-label="บัญชีร้านค้า" className="p-2 hover:text-[#D9A441] transition-colors">
+            <i className="bi bi-person text-2xl" />
           </Link>
         </nav>
 

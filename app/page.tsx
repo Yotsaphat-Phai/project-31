@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { login, register, homeFor } from "./_lib/auth";
 
 export default function Home() {
   const router = useRouter();
@@ -16,25 +17,41 @@ export default function Home() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
+  const [error, setError] = useState("");
 
-  // 🔥 Login - เด้งไป /event ทันที
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Login:", { loginEmail, loginPassword });
-    router.push("/event");
+  const switchTab = (tab: "login" | "register") => {
+    setActiveTab(tab);
+    setError("");
   };
 
-  // 🔥 Register - เด้งไป /event ทันที
+  // Login → เช็คกับบัญชีใน localStorage แล้วพาไปหน้าตาม role ของบัญชี
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      const user = login(loginEmail, loginPassword);
+      router.push(homeFor(user.role));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "เข้าสู่ระบบไม่สำเร็จ");
+    }
+  };
+
+  // Register → บันทึกบัญชีใหม่ (role user) ลง localStorage แล้วไป /event
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (regPassword !== regConfirm) {
-      alert("รหัสผ่านไม่ตรงกัน");
+      setError("รหัสผ่านไม่ตรงกัน");
       return;
     }
 
-    console.log("Register:", { regName, regEmail, regPassword });
-    router.push("/event");
+    try {
+      const user = register({ name: regName, email: regEmail, password: regPassword });
+      router.push(homeFor(user.role));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "สมัครสมาชิกไม่สำเร็จ");
+    }
   };
 
   return (
@@ -56,7 +73,7 @@ export default function Home() {
         {/* Tab Switch */}
         <div className="bg-white rounded-full p-1 flex mb-6 shadow-sm">
           <button
-            onClick={() => setActiveTab("login")}
+            onClick={() => switchTab("login")}
             className={`flex-1 py-2.5 rounded-full text-sm font-medium transition ${
               activeTab === "login"
                 ? "bg-[#E85D5D] text-white shadow-md"
@@ -66,7 +83,7 @@ export default function Home() {
             เข้าสู่ระบบ
           </button>
           <button
-            onClick={() => setActiveTab("register")}
+            onClick={() => switchTab("register")}
             className={`flex-1 py-2.5 rounded-full text-sm font-medium transition ${
               activeTab === "register"
                 ? "bg-[#E85D5D] text-white shadow-md"
@@ -76,6 +93,13 @@ export default function Home() {
             สมัครสมาชิก
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <i className="bi bi-exclamation-circle-fill mr-1"></i>
+            {error}
+          </div>
+        )}
 
         {/* Login Form */}
         {activeTab === "login" && (
@@ -124,9 +148,9 @@ export default function Home() {
             <div className="bg-[#E8F5E9] border border-green-100 rounded-xl p-3 text-center mt-4">
               <p className="text-xs text-green-800 leading-relaxed">
                 <i className="bi bi-info-circle-fill text-green-600 mr-1"></i>
-                เข้าครั้งแรก ระบบจะสร้างบัญชีให้อัตโนมัติ
+                ระบบจะพาไปหน้าตามสิทธิ์ของบัญชีโดยอัตโนมัติ
                 <br />
-                หากพบปัญหาติดต่อ Admin
+                ยังไม่มีบัญชี? กด &quot;สมัครสมาชิก&quot; · หากพบปัญหาติดต่อ Admin
               </p>
             </div>
           </form>

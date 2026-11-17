@@ -14,7 +14,7 @@ export default function EventPage() {
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">
-          <Link href="/" className="w-8 h-8 flex items-center justify-center rounded-full">
+          <Link href="/events" className="w-8 h-8 flex items-center justify-center rounded-full">
             <span className="text-gray-700 text-xl">‹</span>
           </Link>
           <h1 className="text-base font-bold text-gray-800">รายละเอียดงาน</h1>

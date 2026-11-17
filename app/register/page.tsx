@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { register, homeFor } from "../_lib/auth";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -36,8 +39,13 @@ export default function RegisterPage() {
       return;
     }
 
-    console.log("Register:", { name, email, phone, password });
-    alert(`🎉 Register Success!\nName: ${name}\nEmail: ${email}`);
+    // บันทึกบัญชีใหม่ (role user) ลง localStorage แล้ว login ให้ทันที
+    try {
+      const user = register({ name, email, phone, password });
+      router.push(homeFor(user.role));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "สมัครสมาชิกไม่สำเร็จ");
+    }
   };
 
   return (

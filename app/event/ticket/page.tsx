@@ -99,7 +99,7 @@ export default function TicketPage() {
 
       {/* Bottom Navigation */}
       <nav className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-around">
-        <Link href="/" className="flex flex-col items-center text-gray-400 py-1">
+        <Link href="/events" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">🏠</span>
           <span className="text-[10px] mt-0.5">หน้าแรก</span>
         </Link>

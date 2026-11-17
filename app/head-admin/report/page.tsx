@@ -42,12 +42,6 @@ export default function ReportPage() {
           </div>
 
           <Link
-            href="/head-admin/token"
-            className="block text-center w-full bg-[#9E4B8E] text-white text-sm font-semibold py-3.5 rounded-xl shadow-lg mb-2 active:scale-95 transition"
-          >
-            ปรับ TOKEN / คืนเงิน กรณีมีปัญหา
-          </Link>
-          <Link
             href="/head-admin/audit"
             className="block text-center w-full bg-white border-2 border-[#9E4B8E] text-[#9E4B8E] text-sm font-semibold py-3.5 rounded-xl active:scale-95 transition"
           >
@@ -68,10 +62,6 @@ export default function ReportPage() {
         <Link href="/head-admin/audit" className="flex flex-col items-center text-gray-400 py-1">
           <span className="text-xl">📋</span>
           <span className="text-[10px] mt-0.5">Audit Log</span>
-        </Link>
-        <Link href="/head-admin/token" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">💾</span>
-          <span className="text-[10px] mt-0.5">ปรับ TOKEN</span>
         </Link>
       </nav>
     </div>

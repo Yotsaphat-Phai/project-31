@@ -4,20 +4,29 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 type Role = "Admin" | "Staff" | "Vendor";
-type Filter = "ทั้งหมด" | Role | "ระงับ";
+type Filter = "ทั้งหมด" | Role | "ระงับ" | "ถังขยะ";
+
+type Account = {
+  id: number;
+  name: string;
+  role: Role;
+  active: boolean;
+  color: string;
+  deleted?: boolean;
+};
 
 const STORAGE_KEY = "head-admin-accounts";
 
-const initialAccounts = [
-  { id: 1, name: "ณัฐพงศ์ พรมมาตร", role: "Admin" as Role, active: true, color: "bg-blue-500" },
-  { id: 2, name: "ลลิตภัทร กันทา", role: "Staff" as Role, active: true, color: "bg-teal-600" },
-  { id: 3, name: "สมชาย ใจดี", role: "Staff" as Role, active: false, color: "bg-gray-400" },
-  { id: 4, name: "มานี รักงาน", role: "Staff" as Role, active: true, color: "bg-teal-600" },
-  { id: 5, name: "ปรีชา สุขใจ", role: "Admin" as Role, active: true, color: "bg-blue-500" },
-  { id: 6, name: "ร้านน้ำเย็น", role: "Vendor" as Role, active: true, color: "bg-[#C8A057]" },
-  { id: 7, name: "ร้านขนมหวาน", role: "Vendor" as Role, active: true, color: "bg-pink-400" },
-  { id: 8, name: "ร้านอาหารทะเล", role: "Vendor" as Role, active: true, color: "bg-orange-400" },
-  { id: 9, name: "ร้านก๋วยเตี๋ยว", role: "Vendor" as Role, active: false, color: "bg-yellow-500" },
+const initialAccounts: Account[] = [
+  { id: 1, name: "ณัฐพงศ์ พรมมาตร", role: "Admin", active: true, color: "bg-blue-500" },
+  { id: 2, name: "ลลิตภัทร กันทา", role: "Staff", active: true, color: "bg-teal-600" },
+  { id: 3, name: "สมชาย ใจดี", role: "Staff", active: false, color: "bg-gray-400" },
+  { id: 4, name: "มานี รักงาน", role: "Staff", active: true, color: "bg-teal-600" },
+  { id: 5, name: "ปรีชา สุขใจ", role: "Admin", active: true, color: "bg-blue-500" },
+  { id: 6, name: "ร้านน้ำเย็น", role: "Vendor", active: true, color: "bg-[#C8A057]" },
+  { id: 7, name: "ร้านขนมหวาน", role: "Vendor", active: true, color: "bg-pink-400" },
+  { id: 8, name: "ร้านอาหารทะเล", role: "Vendor", active: true, color: "bg-orange-400" },
+  { id: 9, name: "ร้านก๋วยเตี๋ยว", role: "Vendor", active: false, color: "bg-yellow-500" },
 ];
 
 export default function HeadAdminPage() {
@@ -26,9 +35,8 @@ export default function HeadAdminPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState<Role>("Staff");
-  const [accounts, setAccounts] = useState(initialAccounts);
+  const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const [loaded, setLoaded] = useState(false);
-  const [menuId, setMenuId] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -48,16 +56,25 @@ export default function HeadAdminPage() {
   const toggle = (id: number) =>
     setAccounts(accounts.map((a) => (a.id === id ? { ...a, active: !a.active } : a)));
 
+  // ลบ = ย้ายไปถังขยะ (กู้คืนได้)
   const removeAccount = (id: number, name: string) => {
-    setMenuId(null);
     const target = accounts.find((a) => a.id === id);
-    const adminCount = accounts.filter((a) => a.role === "Admin").length;
+    const adminCount = accounts.filter((a) => a.role === "Admin" && !a.deleted).length;
 
     if (target?.role === "Admin" && adminCount <= 1) {
       alert("ลบไม่ได้ ต้องเหลือ Admin อย่างน้อย 1 คน");
       return;
     }
 
+    if (confirm(`ย้ายบัญชี "${name}" ไปถังขยะ?\nสามารถกู้คืนได้ภายหลัง`)) {
+      setAccounts(accounts.map((a) => (a.id === id ? { ...a, deleted: true } : a)));
+    }
+  };
+
+  const restoreAccount = (id: number) =>
+    setAccounts(accounts.map((a) => (a.id === id ? { ...a, deleted: false } : a)));
+
+  const purgeAccount = (id: number, name: string) => {
     if (confirm(`ลบบัญชี "${name}" ถาวร?\nการลบย้อนกลับไม่ได้`)) {
       setAccounts(accounts.filter((a) => a.id !== id));
     }
@@ -88,28 +105,34 @@ export default function HeadAdminPage() {
     setShowAdd(false);
   };
 
-  const tabs: Filter[] = ["ทั้งหมด", "Admin", "Staff", "Vendor", "ระงับ"];
+  const tabs: Filter[] = ["ทั้งหมด", "Admin", "Staff", "Vendor", "ระงับ", "ถังขยะ"];
+
+  const live = accounts.filter((a) => !a.deleted);
 
   const counts: Record<Filter, number> = {
-    ทั้งหมด: accounts.length,
-    Admin: accounts.filter((a) => a.role === "Admin").length,
-    Staff: accounts.filter((a) => a.role === "Staff").length,
-    Vendor: accounts.filter((a) => a.role === "Vendor").length,
-    ระงับ: accounts.filter((a) => !a.active).length,
+    ทั้งหมด: live.length,
+    Admin: live.filter((a) => a.role === "Admin").length,
+    Staff: live.filter((a) => a.role === "Staff").length,
+    Vendor: live.filter((a) => a.role === "Vendor").length,
+    ระงับ: live.filter((a) => !a.active).length,
+    ถังขยะ: accounts.filter((a) => a.deleted).length,
   };
 
   const filtered = accounts.filter((a) => {
+    if (filter === "ถังขยะ") return !!a.deleted && a.name.includes(search);
+    if (a.deleted) return false;
     const matchFilter =
       filter === "ทั้งหมด" ||
       (filter === "ระงับ" ? !a.active : a.role === filter);
     return matchFilter && a.name.includes(search);
   });
 
+  if (!loaded) return null;
+
+  const inTrash = filter === "ถังขยะ";
+
   return (
-    <div
-      className="h-screen w-screen bg-[#FDF5EC] flex flex-col overflow-hidden"
-      onClick={() => setMenuId(null)}
-    >
+    <div className="h-screen w-screen bg-[#FDF5EC] flex flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4">
         <div className="w-full max-w-md mx-auto">
           <div className="flex items-center justify-between mb-4">
@@ -126,12 +149,12 @@ export default function HeadAdminPage() {
             className="w-full bg-white rounded-xl p-3 text-sm outline-none border border-orange-100 mb-3"
           />
 
-          <div className="flex gap-1.5 mb-3 overflow-x-auto">
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {tabs.map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                className={`flex-shrink-0 px-2.5 py-1.5 rounded-full text-xs font-semibold border ${
                   filter === f
                     ? "bg-[#B86BA6] text-white border-[#B86BA6]"
                     : "bg-white text-gray-700 border-gray-200"
@@ -145,14 +168,14 @@ export default function HeadAdminPage() {
           <div className="space-y-2 mb-4">
             {filtered.length === 0 ? (
               <div className="bg-white rounded-xl p-6 text-center text-gray-400 text-sm">
-                ไม่พบบัญชี
+                {inTrash ? "ถังขยะว่างเปล่า" : "ไม่พบบัญชี"}
               </div>
             ) : (
               filtered.map((a) => (
                 <div
                   key={a.id}
-                  className={`relative bg-white rounded-xl p-3 flex items-center gap-3 border border-orange-100 ${
-                    a.active ? "" : "opacity-60"
+                  className={`bg-white rounded-xl p-3 flex items-center gap-3 border border-orange-100 ${
+                    a.active && !inTrash ? "" : "opacity-60"
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-full ${a.color} flex-shrink-0`} />
@@ -160,43 +183,62 @@ export default function HeadAdminPage() {
                     <p className="text-sm font-bold text-gray-800 truncate">{a.name}</p>
                     <p className="text-[11px] text-gray-500">
                       {a.role}
-                      {!a.active && " · ระงับการใช้งาน"}
+                      {!a.active && !inTrash && " · ระงับการใช้งาน"}
                     </p>
                   </div>
-                  <button
-                    onClick={() => toggle(a.id)}
-                    className={`relative w-11 h-6 rounded-full transition flex-shrink-0 ${
-                      a.active ? "bg-teal-600" : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                        a.active ? "translate-x-5" : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuId(menuId === a.id ? null : a.id);
-                    }}
-                    className="text-gray-400 text-lg px-1"
-                  >
-                    ⋯
-                  </button>
 
-                  {menuId === a.id && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute right-3 top-12 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden"
-                    >
+                  {inTrash ? (
+                    <div className="flex gap-1.5 flex-shrink-0">
                       <button
-                        onClick={() => removeAccount(a.id, a.name)}
-                        className="px-4 py-2.5 text-sm font-semibold text-red-500 whitespace-nowrap"
+                        onClick={() => restoreAccount(a.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white"
                       >
-                        ลบบัญชี
+                        กู้คืน
+                      </button>
+                      <button
+                        onClick={() => purgeAccount(a.id, a.name)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-300 text-red-500"
+                      >
+                        ลบถาวร
                       </button>
                     </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => toggle(a.id)}
+                        className={`relative w-11 h-6 rounded-full transition flex-shrink-0 ${
+                          a.active ? "bg-teal-600" : "bg-gray-300"
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                            a.active ? "translate-x-5" : "translate-x-0.5"
+                          }`}
+                        />
+                      </button>
+                      <button
+                        onClick={() => removeAccount(a.id, a.name)}
+                        className="text-red-400 hover:text-red-500 px-1 flex-shrink-0"
+                        aria-label="ย้ายไปถังขยะ"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4h8v2" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v6M14 11v6" />
+                        </svg>
+                      </button>
+                    </>
                   )}
                 </div>
               ))

@@ -220,6 +220,16 @@ function OrderBlock({ order }: { order: Order }) {
             <p className="font-semibold text-[#2F2F45]">ยอดรวม</p>
             <p className="text-lg font-bold text-[#E07A68]">฿{order.total.toLocaleString()}</p>
           </div>
+          {order.slip && (
+            <details className="mt-3 group">
+              <summary className="list-none cursor-pointer flex items-center justify-between text-sm font-semibold text-[#2F2F45]">
+                <span><i className="bi bi-receipt me-2 text-[#E07A68]" />สลิปการโอนเงิน</span>
+                <i className="bi bi-chevron-down text-gray-400 transition-transform group-open:rotate-180" />
+              </summary>
+              {/* eslint-disable-next-line @next/next/no-img-element -- data URL ที่ผู้ใช้แนบ */}
+              <img src={order.slip} alt="สลิปการโอนเงิน" className="mt-2 w-full max-h-96 object-contain rounded-2xl bg-[#FDF5EC]" />
+            </details>
+          )}
           <p className="text-xs text-gray-400 mt-1">
             สั่งซื้อเมื่อ {new Date(order.createdAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}
           </p>

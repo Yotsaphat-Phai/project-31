@@ -22,6 +22,7 @@ export type Order = {
   total: number;
   createdAt: string;
   tickets: OrderTicket[];
+  slip?: string; // รูปสลิป (data URL ย่อขนาดแล้ว)
 };
 
 export function savePendingParticipants(list: ParticipantInfo[]) {
@@ -57,7 +58,7 @@ export function getTicketsLeft(eventId: string): number {
 }
 
 // เรียกตอนชำระเงินสำเร็จ — ตัดบัตรคงเหลือ + ออกบัตร 1 ใบ/คน (QR แยกกัน) ; ซื้อเกินจำนวนที่เหลือจะ throw Error
-export function recordPurchase(eventId: string, qty: number, total: number): Order {
+export function recordPurchase(eventId: string, qty: number, total: number, slip?: string): Order {
   if (qty > getTicketsLeft(eventId)) throw new Error("บัตรคงเหลือไม่พอ");
   const sold = readSold();
   sold[eventId] = (sold[eventId] ?? 0) + qty;
@@ -84,6 +85,7 @@ export function recordPurchase(eventId: string, qty: number, total: number): Ord
     total,
     createdAt: new Date().toISOString(),
     tickets,
+    slip,
   };
   try {
     localStorage.setItem(MY_ORDERS_KEY, JSON.stringify([order, ...all]));

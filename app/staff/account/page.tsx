@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavMain from "../_components/BottomNavMain";
 import { event, staffProfile, useCustomers } from "../_lib/mockUsers";
@@ -10,27 +11,30 @@ type RowProps = {
   value?: string;
   onClick?: () => void;
   danger?: boolean;
+  last?: boolean;
 };
 
-function Row({ icon, label, value, onClick, danger }: RowProps) {
+function Row({ icon, label, value, onClick, danger, last }: RowProps) {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
+      className={`flex w-full items-center gap-3 px-3.5 py-3 text-left ${
+        !last ? "border-b border-[#f5ead9]" : ""
+      }`}
     >
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
           danger ? "bg-[#fbe3dc] text-[#d94e35]" : "bg-[#fbeecf] text-[#1f2a2e]"
         }`}
       >
-        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
+        <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] fill-none stroke-current stroke-[1.8]">
           {icon}
         </svg>
       </span>
       <span className={`flex-1 text-sm font-medium ${danger ? "text-[#d94e35]" : "text-[#1f2a2e]"}`}>
         {label}
       </span>
-      {value && <span className="text-xs text-neutral-500">{value}</span>}
+      {value && <span className="truncate text-xs text-neutral-500">{value}</span>}
       {!danger && (
         <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-neutral-400 stroke-2">
           <path d="M9 5l7 7-7 7" />
@@ -40,134 +44,190 @@ function Row({ icon, label, value, onClick, danger }: RowProps) {
   );
 }
 
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-1.5 ml-4 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+      {children}
+    </p>
+  );
+}
+
 export default function StaffAccountPage() {
   const router = useRouter();
   const { list } = useCustomers();
 
-  // สถิติของ Staff คนนี้ในกะปัจจุบัน
   const myCheckedIn = list.filter((a) => a.checkedIn).length;
   const myTopup = list.reduce((sum, a) => sum + a.pending, 0);
+
+  // Toast ง่าย ๆ สำหรับฟีเจอร์ที่ยังไม่พร้อม — ให้ทุกปุ่มมี feedback จริง
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
+  const soon = (name: string) => setToast(`"${name}" กำลังพัฒนา`);
+
+  const openMail = () =>
+    typeof window !== "undefined" && window.location.assign(`mailto:${staffProfile.email}`);
+  const openTel = () =>
+    typeof window !== "undefined" && window.location.assign(`tel:${staffProfile.phone.replace(/-/g, "")}`);
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[390px] flex-col bg-[#fdf6ee]">
       {/* Header */}
-      <header className="px-5 pt-5">
+      <header className="px-4 pt-5">
         <h1 className="text-xl font-semibold text-[#1f2a2e]">บัญชีของฉัน</h1>
       </header>
 
       {/* Profile card */}
-      <section className="mx-5 mt-4 flex items-center gap-4 rounded-3xl border-2 border-[#f3e3d3] bg-white p-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#f3a9a0] text-xl font-semibold text-white">
-          {staffProfile.initials}
+      <section className="mx-4 mt-3 flex items-center gap-3 rounded-[22px] border border-[#f3e3d3] bg-white p-3.5">
+        <div className="relative shrink-0">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f3a9a0] text-xl font-semibold text-white">
+            {staffProfile.initials}
+          </div>
+          <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#2f8f7f] ring-2 ring-white">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-none stroke-white stroke-[3]">
+              <path d="M5 12l5 5 9-10" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-[#1f2a2e]">
+          <p className="truncate text-[15px] font-semibold text-[#1f2a2e]">
             {staffProfile.name}
           </p>
           <p className="truncate text-xs text-neutral-500">{staffProfile.role}</p>
-          <p className="mt-1 truncate text-[11px] text-neutral-400">
-            รหัส {staffProfile.employeeId}
+          <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-neutral-400">
+            <span className="rounded bg-[#fbe3dc] px-1.5 py-0.5 text-[10px] font-semibold text-[#f0705a]">
+              {staffProfile.employeeId}
+            </span>
           </p>
         </div>
       </section>
 
       {/* Shift info */}
-      <section className="mx-5 mt-3 rounded-3xl bg-[#f0705a] p-4 text-white">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
-          กะปัจจุบัน
-        </p>
-        <p className="mt-1 text-base font-semibold">{staffProfile.shift}</p>
-        <p className="text-xs text-white/85">
+      <section className="mx-4 mt-3 overflow-hidden rounded-[22px] bg-gradient-to-br from-[#f0705a] to-[#e85a40] p-3.5 text-white shadow-[0_10px_24px_-14px_rgba(240,112,90,0.6)]">
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/85">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+            กะปัจจุบัน
+          </p>
+          <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-semibold">
+            ON DUTY
+          </span>
+        </div>
+        <p className="mt-1 text-[15px] font-bold">{staffProfile.shift}</p>
+        <p className="text-[11px] text-white/85">
           {event.name} · {event.venue}
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-white/25 pt-3">
+        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-white/25 pt-2.5">
           <div>
-            <p className="text-2xl font-bold">{myCheckedIn}</p>
+            <p className="text-xl font-bold">{myCheckedIn}</p>
             <p className="text-[11px] text-white/85">เช็คอินวันนี้</p>
           </div>
           <div>
-            <p className="text-2xl font-bold">{myTopup.toLocaleString()}</p>
+            <p className="text-xl font-bold">{myTopup.toLocaleString()}</p>
             <p className="text-[11px] text-white/85">TOKEN ที่เติม</p>
           </div>
         </div>
       </section>
 
       {/* Info */}
-      <section className="mx-5 mt-4 overflow-hidden rounded-3xl border-2 border-[#f3e3d3] bg-white">
-        <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-          ข้อมูลติดต่อ
-        </p>
-        <Row
-          icon={
-            <>
-              <path d="M4 6h16v12H4z" />
-              <path d="M4 7l8 6 8-6" />
-            </>
-          }
-          label="อีเมล"
-          value={staffProfile.email}
-        />
-        <div className="mx-4 border-t border-[#f5ead9]" />
-        <Row
-          icon={<path d="M5 4h4l2 5-3 2a12 12 0 006 6l2-3 5 2v4a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z" />}
-          label="เบอร์โทร"
-          value={staffProfile.phone}
-        />
-      </section>
+      <div className="mx-4 mt-4">
+        <SectionHeader>ข้อมูลติดต่อ</SectionHeader>
+        <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
+          <Row
+            icon={
+              <>
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M4 7l8 6 8-6" />
+              </>
+            }
+            label="อีเมล"
+            value={staffProfile.email}
+            onClick={openMail}
+          />
+          <Row
+            icon={<path d="M5 4h4l2 5-3 2a12 12 0 006 6l2-3 5 2v4a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z" />}
+            label="เบอร์โทร"
+            value={staffProfile.phone}
+            onClick={openTel}
+            last
+          />
+        </section>
+      </div>
 
       {/* Settings */}
-      <section className="mx-5 mt-4 overflow-hidden rounded-3xl border-2 border-[#f3e3d3] bg-white">
-        <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-          ตั้งค่า
-        </p>
-        <Row
-          icon={
-            <>
-              <path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15z" strokeLinejoin="round" />
-              <path d="M10 19a2 2 0 004 0" />
-            </>
-          }
-          label="การแจ้งเตือน"
-        />
-        <div className="mx-4 border-t border-[#f5ead9]" />
-        <Row
-          icon={
-            <>
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.01a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.01a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.01a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
-            </>
-          }
-          label="ตั้งค่าแอป"
-        />
-        <div className="mx-4 border-t border-[#f5ead9]" />
-        <Row
-          icon={
-            <>
-              <circle cx="12" cy="12" r="9" />
-              <path d="M9.1 9a3 3 0 115.8 1c0 2-3 2-3 4M12 17v.5" />
-            </>
-          }
-          label="ช่วยเหลือ"
-        />
-      </section>
+      <div className="mx-4 mt-4">
+        <SectionHeader>ตั้งค่า</SectionHeader>
+        <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
+          <Row
+            icon={
+              <>
+                <path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15z" strokeLinejoin="round" />
+                <path d="M10 19a2 2 0 004 0" />
+              </>
+            }
+            label="การแจ้งเตือน"
+            onClick={() => soon("การแจ้งเตือน")}
+          />
+          <Row
+            icon={
+              <>
+                <rect x="4" y="4" width="16" height="16" rx="3" />
+                <path d="M8 9h8M8 13h8M8 17h5" />
+              </>
+            }
+            label="ตั้งค่าแอป"
+            onClick={() => soon("ตั้งค่าแอป")}
+          />
+          <Row
+            icon={
+              <>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M9.1 9a3 3 0 115.8 1c0 2-3 2-3 4M12 17v.5" />
+              </>
+            }
+            label="ช่วยเหลือ"
+            onClick={() => soon("ช่วยเหลือ")}
+            last
+          />
+        </section>
+      </div>
 
       {/* Logout */}
-      <section className="mx-5 mb-5 mt-4 overflow-hidden rounded-3xl border-2 border-[#f3e3d3] bg-white">
-        <Row
-          icon={
-            <>
-              <path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4" />
-              <path d="M10 8l-4 4 4 4M6 12h10" />
-            </>
-          }
-          label="ออกจากระบบ"
-          danger
-          onClick={() => {
-            if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) router.push("/staff");
-          }}
-        />
-      </section>
+      <div className="mx-4 mb-4 mt-4">
+        <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
+          <Row
+            icon={
+              <>
+                <path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4" />
+                <path d="M10 8l-4 4 4 4M6 12h10" />
+              </>
+            }
+            label="ออกจากระบบ"
+            danger
+            last
+            onClick={() => {
+              if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) router.push("/staff");
+            }}
+          />
+        </section>
+        <p className="mt-2 text-center text-[10px] text-neutral-400">
+          Staff App · เวอร์ชัน 1.0.0
+        </p>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          role="status"
+          className="pointer-events-none fixed bottom-20 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[#1f2a2e] px-4 py-2 text-xs font-medium text-white shadow-lg"
+        >
+          {toast}
+        </div>
+      )}
 
       <BottomNavMain active="account" />
     </main>

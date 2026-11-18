@@ -56,7 +56,6 @@ export default function VendorAccountPage() {
   const router = useRouter();
   const shop = useMyShop();
 
-  const comingSoon = () => alert("ฟีเจอร์นี้ยังไม่เปิดใช้งาน");
 
   const handleLogout = () => {
     if (!confirm("ต้องการออกจากระบบใช่หรือไม่?")) return;
@@ -80,8 +79,8 @@ export default function VendorAccountPage() {
           {/* Shop card */}
           <div className="bg-white rounded-3xl p-5 mb-6">
             <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-              <div className="w-14 h-14 rounded-2xl bg-[#FDF0DD] flex items-center justify-center text-3xl">
-                🏪
+              <div className="w-14 h-14 rounded-2xl bg-[#FDF0DD] flex items-center justify-center">
+                <i className="bi bi-shop text-[26px] text-[#E0A537]" />
               </div>
               <div>
                 <p className="text-lg font-bold text-gray-900">{shop.name}</p>
@@ -97,25 +96,23 @@ export default function VendorAccountPage() {
                   {shop.token.toLocaleString()} <span className="text-sm">฿</span>
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={comingSoon}
+              <Link
+                href="/vendor/withdraw"
                 className="bg-[#E0A537] text-white font-semibold px-5 py-3 rounded-xl border border-[#C88F25] active:scale-95 transition"
               >
                 ถอนเงิน
-              </button>
+              </Link>
             </div>
           </div>
 
           {/* Shop menu */}
           <p className="text-xs text-gray-500 mb-2 ml-1">การจัดการร้าน</p>
           <div className="bg-white rounded-3xl overflow-hidden divide-y divide-gray-100 mb-4">
-            <MenuRow icon="i" label="ข้อมูลร้าน" onClick={comingSoon} />
-            <MenuRow href="/vendor/scan" icon="QR" label="QR รับเงินของร้าน" />
+            <MenuRow href="/vendor/info" icon="i" label="ข้อมูลร้าน" />
             <MenuRow
-              icon={<i className="bi bi-people-fill text-[#7E57C2] text-base" />}
-              label={`พนักงาน · ${shop.staffCount} คน`}
-              onClick={comingSoon}
+              href="/vendor/contact"
+              icon={<i className="bi bi-headset text-base" />}
+              label="ติดต่อแอดมิน"
             />
           </div>
 

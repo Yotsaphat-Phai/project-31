@@ -48,20 +48,12 @@ export default function VendorHomePage() {
       {/* Phone Container (match other vendor pages) */}
       <div className="w-full max-w-sm h-[844px] bg-[#FAF4EC] rounded-[40px] shadow-2xl overflow-hidden flex flex-col">
         <div className="flex-1 overflow-y-auto px-5 pt-6 pb-4">
-          {/* Header: shop code + name + status dot */}
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <p className="text-xs text-gray-400">{shop.code}</p>
-              <h1 className="text-2xl font-bold text-gray-900 mt-1">
-                {shop.name}
-              </h1>
-            </div>
-            <div
-              className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center"
-              title="สถานะร้าน: เปิดอยู่"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E85D5D]" />
-            </div>
+          {/* Header: shop code + name */}
+          <div className="mb-5">
+            <p className="text-xs text-gray-400">{shop.code}</p>
+            <h1 className="text-2xl font-bold text-gray-900 mt-1">
+              {shop.name}
+            </h1>
           </div>
 
           {/* Today's total card */}

@@ -5,7 +5,7 @@
 // - ปุ่มย้อนกลับ → /vendor
 // - Bottom nav 4 ไอคอน (เหมือนทุกหน้า vendor)
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentUser } from "../../_lib/auth";
@@ -32,7 +32,7 @@ function useMyShop(): Shop {
   return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
 }
 
-export default function VendorScanPage() {
+function VendorScanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const shop = useMyShop();
@@ -230,5 +230,14 @@ export default function VendorScanPage() {
         </nav>
       </div>
     </div>
+  );
+}
+
+// useSearchParams ต้องอยู่ใน <Suspense> ไม่งั้น npm run build จะพัง
+export default function VendorScanPage() {
+  return (
+    <Suspense fallback={null}>
+      <VendorScanContent />
+    </Suspense>
   );
 }

@@ -90,8 +90,9 @@ export function useCustomers() {
   }, []);
 
   const update = useCallback((fn: (prev: Customer[]) => Customer[]) => {
-    setList((prev) => {
-      const next = fn(prev ?? load());
+    setList(() => {
+      // อ่านจาก storage ล่าสุดเสมอ — กันเขียนทับบัตรที่ user เพิ่งซื้อหลังเปิดหน้านี้
+      const next = fn(load());
       save(next);
       return next;
     });
@@ -100,7 +101,9 @@ export function useCustomers() {
   const find = useCallback(
     (id: string) => {
       const needle = id.trim().toUpperCase().replace(/^#/, "");
-      return list?.find((c) => c.id.toUpperCase() === needle) ?? null;
+      const match = (c: Customer) => c.id.toUpperCase() === needle;
+      // ไม่เจอใน state → อ่าน storage ใหม่ (บัตรที่ซื้อหลังเปิดหน้า staff)
+      return list?.find(match) ?? (list ? load().find(match) ?? null : null);
     },
     [list]
   );

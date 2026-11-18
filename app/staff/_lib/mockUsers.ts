@@ -49,7 +49,7 @@ export const event = {
 
 // ข้อมูลโปรไฟล์ Staff ที่ล็อกอินอยู่ (เปลี่ยนแปลงโดยระบบแอดมิน)
 export const staffProfile = {
-  initials: "ลล",
+  initials: "ลท",
   name: "ลลิตภัทร กันทา",
   role: "Staff — ประจำจุดเช็คอิน",
   employeeId: "ST-00142",

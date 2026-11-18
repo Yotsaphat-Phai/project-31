@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-// เมนูล่าง — ปุ่มกลางเป็น "เติม TOKEN" (ไปหน้าสแกน topup)
-// ส่วนปุ่มใหญ่ "สแกนตั๋ว เช็คอิน" ของหน้าแรกยังใช้งานเหมือนเดิม
+// เมนูล่าง — 4 เมนูหลัก ทำให้ปุ่ม active มีจุดบอกสถานะ + ช่องว่างกว้างขึ้นเล็กน้อย
+// ทุกหน้าใช้ปุ่มเดียวกัน ไม่มีปุ่ม FAB กลางที่ยื่นออกมา ดูเนียนและเหมือนแอปจริง
 type Tab = "home" | "topup" | "participants" | "account";
 
 type ItemProps = {
@@ -18,14 +18,21 @@ function NavItem({ label, active = false, onClick, children }: ItemProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-1 flex-col items-center gap-1 text-[11px] ${
+      className={`relative flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] transition-colors ${
         active ? "text-[#f0705a]" : "text-neutral-400"
       }`}
     >
-      <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-[1.8]">
+      {/* จุดเล็กบอกสถานะ active ไว้บนปุ่ม */}
+      <span
+        aria-hidden
+        className={`absolute top-0 h-1 w-1 rounded-full ${
+          active ? "bg-[#f0705a]" : "bg-transparent"
+        }`}
+      />
+      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px] fill-none stroke-current stroke-[1.8]">
         {children}
       </svg>
-      {label}
+      <span className={active ? "font-semibold" : "font-medium"}>{label}</span>
     </button>
   );
 }
@@ -34,7 +41,7 @@ export default function BottomNavMain({ active }: { active?: Tab }) {
   const router = useRouter();
 
   return (
-    <nav className="relative z-20 flex border-t border-[#f3e3d3] bg-white px-2 pb-3 pt-2">
+    <nav className="sticky bottom-0 z-20 flex border-t border-[#f3e3d3] bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 backdrop-blur">
       <NavItem label="หน้าแรก" active={active === "home"} onClick={() => router.push("/staff")}>
         <path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" />
       </NavItem>

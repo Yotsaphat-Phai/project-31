@@ -1,14 +1,113 @@
-/* แอนิเมชันเส้นสแกนของหน้า Staff */
-@keyframes staff-scanline {
-  0%,
-  100% {
-    transform: translateY(-70px);
-  }
-  50% {
-    transform: translateY(70px);
-  }
+/* ================================================================
+   STAFF APP — design tokens & utilities
+   (เฉพาะส่วน staff ไม่กระทบหน้าอื่น)
+   ================================================================ */
+
+:root {
+  /* พาเลตหลัก */
+  --s-bg: #fdf6ee;
+  --s-bg-soft: #fbf0e3;
+  --s-ink: #1f2a2e;
+  --s-ink-2: #2a3a40;
+  --s-muted: #8a8580;
+  --s-line: #f3e3d3;
+  --s-line-soft: #f5ead9;
+
+  --s-brand: #f0705a;
+  --s-brand-ink: #c84a30;
+  --s-brand-soft: #fbe3dc;
+  --s-brand-chip: #fbe0d9;
+
+  --s-good: #2f8f7f;
+  --s-good-soft: #d7ecd9;
+
+  --s-warn: #c48a2a;
+  --s-warn-soft: #fbeecf;
+
+  --s-gold: #e8b96a;
+
+  --s-shadow-sm: 0 1px 2px rgba(31, 42, 46, 0.04), 0 2px 8px -4px rgba(31, 42, 46, 0.06);
+  --s-shadow-md: 0 2px 6px rgba(31, 42, 46, 0.05), 0 12px 24px -16px rgba(31, 42, 46, 0.12);
+  --s-shadow-brand: 0 10px 24px -14px rgba(240, 112, 90, 0.65);
 }
 
-.animate-scanline {
-  animation: staff-scanline 2.4s ease-in-out infinite;
+/* การ์ดพื้นฐาน */
+.s-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  border: 1px solid var(--s-line);
+  box-shadow: var(--s-shadow-sm);
 }
+
+/* chip วงกลมเล็ก */
+.s-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ซ่อน scrollbar แนวนอนสำหรับแถบเลื่อน */
+.s-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.s-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ================================================================
+   Ambient dim สำหรับหน้าสแกน (ไม่มีเส้นวิ่งแล้ว)
+   ให้มุมกรอบเรืองเบา ๆ เป็น animation ที่สุภาพแทน
+   ================================================================ */
+@keyframes staff-corner-pulse {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 0 rgba(240,112,90,0)); }
+  50%      { opacity: 0.75; filter: drop-shadow(0 0 6px rgba(240,112,90,0.35)); }
+}
+.s-corner-pulse {
+  animation: staff-corner-pulse 2.2s ease-in-out infinite;
+}
+
+/* ================================================================
+   เหรียญสั่น/ประกายดาวเล็ก ๆ ในหน้า success
+   ================================================================ */
+@keyframes staff-pop-in {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.s-pop-in { animation: staff-pop-in 420ms cubic-bezier(.3,.9,.3,1.2) both; }
+
+@keyframes staff-sparkle {
+  0%, 100% { transform: scale(1);   opacity: 0.9; }
+  50%      { transform: scale(1.3); opacity: 1;   }
+}
+.s-sparkle { animation: staff-sparkle 1.8s ease-in-out infinite; }
+
+/* fade-in-up อ่อน ๆ สำหรับการ์ด success */
+@keyframes staff-rise {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.s-rise      { animation: staff-rise 380ms ease-out both; }
+.s-rise-150  { animation: staff-rise 380ms ease-out 150ms both; }
+.s-rise-300  { animation: staff-rise 380ms ease-out 300ms both; }
+
+/* ริบบิ้นวงกลมประกายในหน้า success เช็คอิน */
+@keyframes staff-ring-expand {
+  0%   { transform: scale(0.7); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0;   }
+}
+.s-ring-expand::before,
+.s-ring-expand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(240, 112, 90, 0.35);
+  border-radius: 9999px;
+  animation: staff-ring-expand 1.8s ease-out infinite;
+}
+.s-ring-expand::after { animation-delay: 0.9s; }

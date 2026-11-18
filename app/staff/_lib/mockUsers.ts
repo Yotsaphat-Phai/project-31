@@ -137,3 +137,30 @@ export function useCustomers() {
 
   return { list: list ?? [], loaded: list !== null, find, checkIn, addPending };
 }
+
+// ===== ใช้จากฝั่ง user (นอก React hook) =====
+
+// อ่านผู้เข้าร่วมตามเลขตั๋ว — ใช้แสดงสถานะเช็คอินในหน้า "บัตรของฉัน"
+export function getCustomer(id: string): Customer | null {
+  return load().find((c) => c.id === id) ?? null;
+}
+
+// ออกบัตรใหม่หลัง user ชำระเงิน → staff สแกนเลขตั๋วนี้ได้ทันที
+export function addCustomer(input: { name: string; tickets: number; batch?: string }): Customer {
+  const list = load();
+  const maxId = list.reduce((m, c) => Math.max(m, parseInt(c.id, 10) || 0), 0);
+  const name = input.name.trim() || "ผู้เข้าร่วม";
+  const customer: Customer = {
+    id: String(maxId + 1).padStart(5, "0"),
+    initials: name.replace(/\s+/g, "").slice(0, 2),
+    name,
+    kind: "ทั่วไป",
+    batch: input.batch ?? "20XX",
+    tickets: input.tickets,
+    token: 0,
+    pending: 0,
+    checkedIn: false,
+  };
+  save([customer, ...list]);
+  return customer;
+}

@@ -27,9 +27,9 @@ export const ROLE_HOME: Record<Role, string> = {
 export const users: Account[] = [
   {
     id: "U001",
-    name: "สมชาย ใจดี",
+    name: "Cristiano Ronaldo",
     email: "user@test.com",
-    phone: "0810000001",
+    phone: "081-xxx-xxx1",
     password: "123456",
     role: "user",
     active: true,
@@ -37,9 +37,9 @@ export const users: Account[] = [
   },
   {
     id: "U002",
-    name: "ยศพัทธ์ ไพสาลี",
+    name: "Test User 1",
     email: "jj@test.com",
-    phone: "0810000002",
+    phone: "081-xxx-xxxx",
     password: "000000",
     role: "user",
     active: true,
@@ -52,7 +52,7 @@ export const staff: Account[] = [
     id: "S001",
     name: "ลลิตภัทร กันทา",
     email: "stafflemon@test.com",
-    phone: "0820000001",
+    phone: "082-xxx-xxxx",
     password: "123456",
     role: "staff",
     active: true,
@@ -60,9 +60,9 @@ export const staff: Account[] = [
   },
   {
     id: "S002",
-    name: "สมชาย ใจดี (Staff)",
+    name: "Lala (Staff)",
     email: "staff2@test.com",
-    phone: "0820000002",
+    phone: "082-xxx-xxxx",
     password: "123456",
     role: "staff",
     active: false,
@@ -75,7 +75,7 @@ export const vendors: Account[] = [
     id: "V001",
     name: "ฐาปกรณ์ ภิรมย์บูรณ์",
     email: "vendor@test.com",
-    phone: "0830000001",
+    phone: "083-xxx-xxxx",
     password: "123456",
     role: "vendor",
     active: true,
@@ -85,7 +85,7 @@ export const vendors: Account[] = [
     id: "V002",
     name: "ร้านขนมหวาน",
     email: "vendor2@test.com",
-    phone: "0830000002",
+    phone: "083-xxx-xxxx",
     password: "123456",
     role: "vendor",
     active: true,
@@ -98,7 +98,7 @@ export const admins: Account[] = [
     id: "A001",
     name: "จัตติเทพ ชาติพหล",
     email: "admin@test.com",
-    phone: "0840000001",
+    phone: "084-xxx-xxxx",
     password: "123456",
     role: "admin",
     active: true,
@@ -111,7 +111,7 @@ export const headAdmins: Account[] = [
     id: "H001",
     name: "ณัฐพงศ์ พรมมาตร",
     email: "head@test.com",
-    phone: "0850000001",
+    phone: "085-xxx-xxxx",
     password: "123456",
     role: "head-admin",
     active: true,
@@ -132,7 +132,7 @@ export const mockAccounts: Account[] = [
 export type EventItem = {
   id: string;
   title: string;
-  badge: string;     // ข้อความบนป้ายในรูปปก
+  image: string;     // รูปปก (อยู่ใน /public)
   dateText: string;  // เช่น "เสาร์ 20 ธ.ค. · 18:00 น."
   venue: string;
   price: number;     // ราคาเริ่มต้นต่อใบ (บาท)
@@ -142,12 +142,12 @@ export type EventItem = {
 export const events: EventItem[] = [
   {
     id: "E001",
-    title: "งานเลี้ยงรุ่น Class of 20XX",
-    badge: "Class of 20XX",
+    title: "งานเลี้ยงรุ่น SPU 2027",
+    image: "/images/event-cover.jpg",
     dateText: "เสาร์ 20 ธ.ค. · 18:00 น.",
-    venue: "ชื่อสถานที่จัดงาน",
+    venue: "อาคารเฉลิมพระเกียรติ 50 ปี มหาวิทยาลัยศรีปทุม",
     price: 500,
-    ticketsLeft: 126,
+    ticketsLeft: 500,
   },
 ];
 

@@ -1,100 +1,133 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+// หน้ารายละเอียดงาน: รูปปก → ชื่องาน + ข้อมูล → เลือกจำนวนบัตร → แถบรวมราคา/ซื้อบัตรติดล่างจอ
 
-export default function EventPage() {
-  const [quantity, setQuantity] = useState(2);
-  const pricePerTicket = 500;
-  const total = pricePerTicket * quantity;
+import { Suspense, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { events } from "../_lib/mock";
+import { useTicketsLeft } from "../_lib/tickets";
+
+function EventDetail() {
+  const id = useSearchParams().get("id");
+  const ev = events.find((e) => e.id === id) ?? events[0];
+  const ticketsLeft = useTicketsLeft(ev.id);
+  const soldOut = ticketsLeft === 0;
+  const [quantity, setQuantity] = useState(1);
+  const qty = Math.min(quantity, Math.max(1, ticketsLeft));
+  const total = ev.price * qty;
+  const maxQty = Math.max(1, Math.min(10, ticketsLeft));
+
+  const info = [
+    { icon: "bi-calendar-event", label: "วันและเวลา", value: ev.dateText, color: "#E07A68" },
+    { icon: "bi-geo-alt-fill", label: "สถานที่", value: ev.venue, color: "#4E9C8F" },
+    { icon: "bi-tag-fill", label: "ราคาต่อใบ", value: `฿${ev.price.toLocaleString()}`, color: "#D9A53B" },
+    { icon: "bi-ticket-perforated-fill", label: "บัตรคงเหลือ", value: soldOut ? "บัตรหมดแล้ว" : `${ticketsLeft} ใบ`, color: "#A86BA6" },
+  ];
 
   return (
-    <div className="h-screen w-screen bg-[#FDF5EC] flex items-center justify-center overflow-hidden p-3">
-      <div className="w-full max-w-md max-h-full overflow-y-auto px-2 py-2">
-
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-3">
-          <Link href="/events" className="w-8 h-8 flex items-center justify-center rounded-full">
-            <span className="text-gray-700 text-xl">‹</span>
+    <main className="min-h-screen bg-[#FDF5EC] pb-32">
+      <div className="max-w-md mx-auto px-5 pt-5 space-y-5">
+        {/* หัวหน้า: ปุ่มย้อนกลับ + ชื่อหน้า (ชื่ออยู่กึ่งกลาง) */}
+        <div className="relative flex items-center justify-center h-10">
+          <Link
+            href="/events"
+            aria-label="ย้อนกลับ"
+            className="absolute left-0 w-10 h-10 rounded-full bg-white border border-[#EEE6E6] flex items-center justify-center"
+          >
+            <i className="bi bi-chevron-left text-lg text-[#2F2F45]" />
           </Link>
-          <h1 className="text-base font-bold text-gray-800">รายละเอียดงาน</h1>
+          <h2 className="text-lg font-bold text-[#2F2F45]">รายละเอียดงาน</h2>
         </div>
 
-        {/* Event Image */}
-        <div className="bg-[#FFE5DC] rounded-2xl p-4 mb-3 relative h-28 flex items-center justify-center">
-          <div className="absolute top-1 left-4 text-xl"></div>
-          <div className="absolute top-0 right-8 text-lg"></div>
-          <div className="absolute top-4 right-2 text-xl"></div>
-          <div className="bg-[#E85D5D] rounded-xl p-3 shadow-lg">
-            <span className="text-white text-3xl"></span>
+        {/* รูปปกในกรอบ */}
+        <div className="bg-white rounded-3xl border border-[#EEE6E6] p-2 shadow-sm">
+          <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-[#F3E3D3]">
+            <Image src={ev.image} alt={ev.title} fill sizes="(max-width: 448px) 100vw, 448px" className="object-cover" priority />
           </div>
         </div>
 
-        {/* Title */}
-        <h2 className="text-lg font-bold text-gray-800 mb-1">
-          งานเลี้ยงรุ่น Class of 20XX
-        </h2>
-        <div className="inline-block bg-[#FFE5DC] text-[#E85D5D] text-[10px] font-semibold px-2 py-0.5 rounded-full mb-3">
-          บัตรประเภทเดียวราคาเดียว
-        </div>
+        <div className="space-y-5">
+          {/* ชื่องาน */}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-[#2F2F45]">{ev.title}</h1>
+            <span className="inline-block mt-2 bg-[#FBEAE5] text-[#E07A68] text-xs font-semibold px-3 py-1 rounded-full">
+              บัตรประเภทเดียว ราคาเดียว
+            </span>
+          </div>
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {[
-            { icon: "", label: "วันที่", value: "20 ธ.ค. • 18:00" },
-            { icon: "", label: "สถานที่", value: "ห้องสัมมนา" },
-            { icon: "", label: "ราคา", value: `฿${pricePerTicket}` },
-            { icon: "", label: "บัตรเหลือ", value: "126 ใบ" },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-2">
-              <div className="w-8 h-8 bg-[#FFE5DC] rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-sm">{item.icon}</span>
+          {/* ข้อมูลงาน */}
+          <div className="bg-white rounded-2xl border border-[#EEE6E6] divide-y divide-[#F3ECEC]">
+            {info.map((it) => (
+              <div key={it.label} className="flex items-center gap-3 px-4 py-3">
+                <span
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: `${it.color}22` }}
+                >
+                  <i className={`bi ${it.icon} text-lg`} style={{ color: it.color }} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500">{it.label}</p>
+                  <p className="text-[15px] font-semibold text-[#2F2F45] break-words">{it.value}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[9px] text-gray-500">{item.label}</p>
-                <p className="text-[11px] font-semibold text-gray-800 truncate">{item.value}</p>
-              </div>
+            ))}
+          </div>
+
+          {/* จำนวนบัตร */}
+          <div className="bg-white rounded-2xl border border-[#EEE6E6] px-4 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-[15px] font-semibold text-[#2F2F45]">จำนวนบัตร</p>
+              <p className="text-xs text-gray-400">สูงสุด {maxQty} ใบต่อครั้ง</p>
             </div>
-          ))}
-        </div>
-
-        {/* Quantity */}
-        <div className="bg-white rounded-lg p-3 mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700">จำนวนบัตร</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-7 h-7 bg-[#FFE5DC] text-[#E85D5D] rounded-full font-bold flex items-center justify-center"
-            >
-              −
-            </button>
-            <span className="text-base font-bold text-gray-800 w-6 text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="w-7 h-7 bg-[#E85D5D] text-white rounded-full font-bold flex items-center justify-center"
-            >
-              +
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1 || soldOut}
+                aria-label="ลดจำนวน"
+                className="w-9 h-9 rounded-full bg-[#FBEAE5] text-[#E07A68] flex items-center justify-center disabled:opacity-40"
+              >
+                <i className="bi bi-dash-lg" />
+              </button>
+              <span className="w-6 text-center text-lg font-bold text-[#2F2F45]">{qty}</span>
+              <button
+                onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+                disabled={qty >= maxQty || soldOut}
+                aria-label="เพิ่มจำนวน"
+                className="w-9 h-9 rounded-full bg-[#E07A68] text-white flex items-center justify-center disabled:opacity-40"
+              >
+                <i className="bi bi-plus-lg" />
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* 🔗 Total + Buy Button → /event/participants */}
-        <div className="flex items-center justify-between gap-2 bg-white rounded-lg p-3">
+      {/* แถบรวมราคา + ซื้อบัตร */}
+      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-[#EEE6E6]">
+        <div className="max-w-md mx-auto px-5 py-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] text-gray-500">รวม</p>
-            <p className="text-xl font-bold text-gray-800">
-              ฿{total.toLocaleString()}
-            </p>
+            <p className="text-xs text-gray-500">ราคารวม ({qty} ใบ)</p>
+            <p className="text-2xl font-bold text-[#2F2F45]">฿{total.toLocaleString()}</p>
           </div>
           <Link
-            href={`/event/participants?qty=${quantity}&total=${total}`}
-            className="bg-[#E85D5D] text-white text-sm font-semibold px-5 py-2.5 rounded-lg active:scale-95 shadow-lg flex items-center gap-1.5"
+            href={soldOut ? "#" : `/event/participants?id=${ev.id}&qty=${qty}&total=${total}`}
+            aria-disabled={soldOut}
+            className={`text-white font-semibold px-7 py-3.5 rounded-2xl flex items-center gap-2 ${soldOut ? "bg-gray-300 pointer-events-none" : "bg-[#E07A68] active:scale-95"}`}
           >
-             ซื้อบัตร
+            {soldOut ? "บัตรหมด" : <>ซื้อบัตร <i className="bi bi-arrow-right" /></>}
           </Link>
         </div>
-
       </div>
-    </div>
+    </main>
+  );
+}
+
+export default function EventPage() {
+  return (
+    <Suspense>
+      <EventDetail />
+    </Suspense>
   );
 }

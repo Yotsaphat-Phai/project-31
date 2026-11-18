@@ -9,6 +9,17 @@ import { mockAccounts, ROLE_HOME, type Account, type Role } from "./mock";
 
 const REGISTERED_KEY = "p31-registered-users";
 const SESSION_KEY = "p31-current-user";
+const OVERRIDES_KEY = "p31-account-overrides"; // แก้ข้อมูล/รหัสผ่านของบัญชี mock (แก้ไฟล์ไม่ได้)
+
+type Overrides = Record<string, Partial<Pick<Account, "name" | "email" | "phone" | "password">>>;
+
+function readOverrides(): Overrides {
+  try {
+    const raw = localStorage.getItem(OVERRIDES_KEY);
+    if (raw) return JSON.parse(raw) as Overrides;
+  } catch {}
+  return {};
+}
 
 export type SessionUser = Omit<Account, "password">;
 
@@ -41,7 +52,8 @@ function saveSession(user: SessionUser) {
 
 // บัญชีทั้งหมด = mock (ทุก role) + คนที่สมัครเอง
 export function getAccounts(): Account[] {
-  return [...mockAccounts, ...readRegistered()];
+  const ov = readOverrides();
+  return [...mockAccounts, ...readRegistered()].map((a) => (ov[a.id] ? { ...a, ...ov[a.id] } : a));
 }
 
 // login ด้วยอีเมลหรือเบอร์โทร — ผิดจะ throw Error พร้อมข้อความภาษาไทย
@@ -110,4 +122,39 @@ export function getCurrentUser(): SessionUser | null {
 
 export function homeFor(role: Role): string {
   return ROLE_HOME[role];
+}
+
+// แก้ไขข้อมูลบัญชีที่ login อยู่ (ชื่อ / อีเมล / เบอร์โทร)
+export function updateProfile(input: { name: string; email: string; phone: string }): SessionUser {
+  const me = getCurrentUser();
+  if (!me) throw new Error("กรุณาเข้าสู่ระบบใหม่");
+  const name = input.name.trim();
+  const email = input.email.trim().toLowerCase();
+  const phone = input.phone.trim();
+  if (!name || !email) throw new Error("กรุณากรอกชื่อและอีเมล");
+  const others = getAccounts().filter((a) => a.id !== me.id);
+  if (others.some((a) => a.email.toLowerCase() === email)) throw new Error("อีเมลนี้มีบัญชีอยู่แล้ว");
+  if (phone && others.some((a) => a.phone === phone)) throw new Error("เบอร์โทรนี้มีบัญชีอยู่แล้ว");
+  writeOverride(me.id, { name, email, phone });
+  const user = { ...me, name, email, phone };
+  saveSession(user);
+  return user;
+}
+
+// เปลี่ยนรหัสผ่านของบัญชีที่ login อยู่
+export function changePassword(current: string, next: string) {
+  const me = getCurrentUser();
+  if (!me) throw new Error("กรุณาเข้าสู่ระบบใหม่");
+  const account = getAccounts().find((a) => a.id === me.id);
+  if (!account || account.password !== current) throw new Error("รหัสผ่านปัจจุบันไม่ถูกต้อง");
+  if (next.length < 6) throw new Error("รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร");
+  writeOverride(me.id, { password: next });
+}
+
+function writeOverride(id: string, patch: Overrides[string]) {
+  const ov = readOverrides();
+  ov[id] = { ...ov[id], ...patch };
+  try {
+    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(ov));
+  } catch {}
 }

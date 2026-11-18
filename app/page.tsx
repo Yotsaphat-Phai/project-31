@@ -149,15 +149,6 @@ export default function Home() {
             >
               เข้าสู่ระบบ
             </button>
-
-            <div className="bg-[#E8F5E9] border border-green-100 rounded-xl p-3 text-center mt-4">
-              <p className="text-xs text-green-800 leading-relaxed">
-                <i className="bi bi-info-circle-fill text-green-600 mr-1"></i>
-                ระบบจะพาไปหน้าตามสิทธิ์ของบัญชีโดยอัตโนมัติ
-                <br />
-                ยังไม่มีบัญชี? กด &quot;สมัครสมาชิก&quot; · หากพบปัญหาติดต่อ Admin
-              </p>
-            </div>
           </form>
         )}
 

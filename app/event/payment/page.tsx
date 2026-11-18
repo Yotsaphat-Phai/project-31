@@ -3,11 +3,14 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { recordPurchase } from "../../_lib/tickets";
 
 function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const total = parseInt(searchParams.get("total") || "1000");
+  const eventId = searchParams.get("id") || "E001";
+  const qty = parseInt(searchParams.get("qty") || "1");
 
   const [slipUploaded, setSlipUploaded] = useState(false);
 
@@ -34,7 +37,13 @@ function PaymentContent() {
       alert("กรุณาแนบสลิปการโอนเงินก่อน");
       return;
     }
-    //  ไปหน้า /event/ticket
+    // ตัดบัตรคงเหลือ แล้วไปหน้า /event/ticket
+    try {
+      recordPurchase(eventId, qty, total);
+    } catch (err) {
+      alert((err as Error).message);
+      return;
+    }
     router.push("/event/ticket");
   };
 
@@ -45,7 +54,7 @@ function PaymentContent() {
 
           {/* 🔗 Header - Back to participants */}
           <div className="flex items-center gap-2 mb-4">
-            <Link href="/event/participants" className="text-gray-700 text-xl">‹</Link>
+            <Link href={`/event/participants?id=${eventId}&qty=${qty}&total=${total}`} className="text-gray-700 text-xl">‹</Link>
             <h1 className="text-base font-bold text-gray-800">ชำระเงิน</h1>
           </div>
 

@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import UserBottomNav from "@/app/_components/UserBottomNav";
 import { QRCodeSVG } from "qrcode.react";
 
 const USER_CODE = "VCK001";
 
 export default function TokenQRPage() {
   const [qrValue, setQrValue] = useState("");
-  const [balance] = useState(4250);
+  const [balance] = useState(0);
   const [spinning, setSpinning] = useState(false);
 
   // สร้างค่า QR ใหม่ (ใส่เวลาไว้ด้วย เพื่อให้ QR เปลี่ยนทุกครั้งที่รีเฟรช)
@@ -30,19 +30,7 @@ export default function TokenQRPage() {
     <main className="min-h-screen bg-[#FDF5EC] pb-28">
       <div className="mx-auto max-w-md px-5 pt-8">
         {/* ===== Header ===== */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-medium text-[#6B6B6B]">{USER_CODE}</p>
-            <h1 className="mt-1 text-xl font-bold text-[#1F2A44]">รับชำระเงิน</h1>
-          </div>
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm"
-            aria-label="แจ้งเตือน"
-          >
-            <span className="h-2.5 w-2.5 rounded-full bg-[#E5484D]" />
-          </button>
-        </div>
+        <h1 className="text-xl font-bold text-[#1F2A44]">รับชำระเงิน</h1>
 
         {/* ===== QR Card ===== */}
         <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
@@ -158,36 +146,3 @@ function CoinStack() {
   );
 }
 
-/* แถบเมนูล่าง (เหมือนหน้า /events) */
-function UserBottomNav({ active }: { active: "home" | "ticket" | "token" | "profile" }) {
-  const items = [
-    { key: "home", href: "/events", label: "หน้าแรก", icon: "bi-house-door-fill", color: "#E07A68" },
-    { key: "ticket", href: "/event/ticket", label: "บัตรของฉัน", icon: "bi-ticket-perforated-fill", color: "#EBB654" },
-    { key: "token", href: "/token", label: "TOKEN", icon: "", color: "#D9A53B" },
-    { key: "profile", href: "#", label: "โปรไฟล์", icon: "bi-person-fill", color: "#A86BA6" },
-  ] as const;
-  return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-[#EEE6E6]">
-      <div className="max-w-md mx-auto flex justify-around py-3">
-        {items.map((it) => (
-          <Link key={it.key} href={it.href} className="flex flex-col items-center gap-1 w-20">
-            {it.icon ? (
-              <i className={`bi ${it.icon} text-3xl`} style={{ color: it.color }} />
-            ) : (
-              // เหรียญ TOKEN (฿)
-              <span className="w-9 h-9 rounded-full bg-[#EBB654] border-2 border-[#D9A53B] flex items-center justify-center text-[#9A6A1A] font-bold">
-                ฿
-              </span>
-            )}
-            <span
-              className={`text-sm ${active === it.key ? "font-semibold" : "text-gray-500"}`}
-              style={active === it.key ? { color: it.color } : undefined}
-            >
-              {it.label}
-            </span>
-          </Link>
-        ))}
-      </div>
-    </nav>
-  );
-}

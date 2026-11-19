@@ -2,12 +2,12 @@
 
 // หน้าถอน TOKEN (Vendor)
 // 1) กรอกจำนวน → 2) ยืนยัน → 3) ส่งคำขอสำเร็จ (รอแอดมินโอนเงิน)
-// frontend only — ยอดคงเหลือจาก mock, ส่งคำขอแล้วยังไม่ได้ตัดยอดจริง
+// frontend only — ยอดคงเหลือคิดจากยอดขาย (vendorBalance), ส่งคำขอแล้วยังไม่ได้ตัดยอดจริง
 
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { getCurrentUser } from "../../_lib/auth";
-import { shops, type Shop } from "../../_lib/mock";
+import { shopFor, type Shop } from "../../_lib/mock";
 import { getShopBalance } from "../../_lib/vendorBalance";
 
 const noopSubscribe = () => () => {};
@@ -19,7 +19,7 @@ function useMyShop(): Shop {
     () => getCurrentUser()?.id ?? "",
     () => ""
   );
-  return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
+  return shopFor(vendorId);
 }
 
 // ===== ตั้งค่า (mock) =====

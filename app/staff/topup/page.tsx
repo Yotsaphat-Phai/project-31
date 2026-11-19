@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { avatarPalette, staffProfile, useCustomers } from "../_lib/mockUsers";
+import { avatarPalette, useStaffProfile, useCustomers } from "../_lib/mockUsers";
 import { appendTopup } from "../_lib/topupHistory";
 
 const presets: number[] = [100, 200, 500, 1000];
@@ -10,6 +10,7 @@ const presets: number[] = [100, 200, 500, 1000];
 type PayMethod = "promptpay" | "cash";
 
 function TopupContent() {
+  const staffProfile = useStaffProfile();
   const router = useRouter();
   const id = useSearchParams().get("id") ?? "";
   const { list, loaded, find, adjustToken } = useCustomers();

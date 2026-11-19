@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavMain from "./_components/BottomNavMain";
-import { avatarPalette, event, staffProfile, useCustomers } from "./_lib/mockUsers";
+import { avatarPalette, event, useStaffProfile, useCustomers } from "./_lib/mockUsers";
 
 function Icon({
   bg,
@@ -22,6 +22,7 @@ function Icon({
 }
 
 export default function StaffHomePage() {
+  const staffProfile = useStaffProfile();
   const router = useRouter();
   const { list } = useCustomers();
 

@@ -9,7 +9,7 @@ import { Suspense, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentUser } from "../../_lib/auth";
-import { shops, type Shop } from "../../_lib/mock";
+import { shopFor, type Shop } from "../../_lib/mock";
 import { payAtShop, type VendorTx } from "../../_lib/vendorTx";
 // ใช้ตัวสแกนเดียวกับฝั่ง staff (jsQR) — เปิดกล้องครั้งเดียว อ่าน QR ทั้งภาพ
 import QrScanner from "../../staff/_components/QrScanner";
@@ -22,7 +22,7 @@ function useMyShop(): Shop {
     () => getCurrentUser()?.id ?? "",
     () => ""
   );
-  return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
+  return shopFor(vendorId);
 }
 
 function VendorScanContent() {

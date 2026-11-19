@@ -5,21 +5,14 @@
 // - ปุ่มย้อนกลับ → /vendor
 // - Bottom nav 4 ไอคอน (เหมือนทุกหน้า vendor)
 
-import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentUser } from "../../_lib/auth";
 import { shops, type Shop } from "../../_lib/mock";
-
-interface Html5QrcodeScanner {
-  start: (
-    cameraConfig: { facingMode: string },
-    config: { fps: number; qrbox: { width: number; height: number } },
-    onSuccess: (decodedText: string) => void,
-    onError: () => void
-  ) => Promise<void>;
-  stop: () => Promise<void>;
-}
+import { payAtShop, type VendorTx } from "../../_lib/vendorTx";
+// ใช้ตัวสแกนเดียวกับฝั่ง staff (jsQR) — เปิดกล้องครั้งเดียว อ่าน QR ทั้งภาพ
+import QrScanner from "../../staff/_components/QrScanner";
 
 const noopSubscribe = () => () => {};
 
@@ -42,72 +35,40 @@ function VendorScanContent() {
 
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [amount, setAmount] = useState<number>(presetAmount);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const [manualCode, setManualCode] = useState("");
+  const [error, setError] = useState("");
+  const [done, setDone] = useState<{ tx: VendorTx; balance: number } | null>(null);
+  const [cameraError, setCameraError] = useState("");
 
-  useEffect(() => {
-    const loadScanner = async () => {
-      try {
-        const { Html5Qrcode } = await import("html5-qrcode");
-        const html5QrCode = new Html5Qrcode("qr-reader");
-        scannerRef.current = html5QrCode as unknown as Html5QrcodeScanner;
-
-        await html5QrCode.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
-          (decodedText: string) => {
-            setScanResult(decodedText);
-            html5QrCode.stop().catch(() => {});
-          },
-          () => {}
-        );
-      } catch (err) {
-        console.error("ไม่สามารถเปิดกล้องได้:", err);
-      }
-    };
-
-    loadScanner();
-
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-      }
-    };
-  }, []);
-
-  const handleConfirm = () => {
-    if (!amount || amount <= 0) {
-      alert("กรุณากรอกยอดชำระ");
-      return;
-    }
-    if (!scanResult) {
-      alert("กรุณาสแกน QR ก่อน");
-      return;
-    }
-    alert(
-      `✅ ตัด TOKEN สำเร็จ!\nร้าน: ${shop.name}\nยอด: ${amount} TOKEN\nQR: ${scanResult}`
-    );
-    router.push("/vendor");
+  // กล้องอ่าน QR ได้ → เก็บเลข (ตัด # และช่องว่าง) แล้วหยุดภาพไว้
+  const handleScan = (text: string) => {
+    if (scanResult) return;
+    setScanResult(text.trim().replace(/^#/, ""));
+    setError("");
   };
 
-  const handleRescan = async () => {
-    setScanResult(null);
-    try {
-      const { Html5Qrcode } = await import("html5-qrcode");
-      const html5QrCode = new Html5Qrcode("qr-reader");
-      scannerRef.current = html5QrCode as unknown as Html5QrcodeScanner;
+  // ยืนยัน: ใช้เลขจากกล้อง หรือเลขที่พิมพ์เอง → ตัด TOKEN จริง + บันทึกรายการร้าน
+  const handleConfirm = () => {
+    const code = (scanResult ?? manualCode).trim();
+    if (!amount || amount <= 0) return setError("กรุณากรอกยอดชำระ");
+    if (!code) return setError("กรุณาสแกน QR หรือพิมพ์เลข QR ของลูกค้า");
+    const res = payAtShop(shop, code, amount);
+    if (!res.ok) return setError(res.error);
+    setError("");
+    setDone({ tx: res.tx, balance: res.balance });
+  };
 
-      await html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        (decodedText: string) => {
-          setScanResult(decodedText);
-          html5QrCode.stop().catch(() => {});
-        },
-        () => {}
-      );
-    } catch (err) {
-      console.error(err);
-    }
+  const nextCustomer = () => {
+    setDone(null);
+    setManualCode("");
+    setAmount(presetAmount);
+    handleRescan();
+  };
+
+  // สแกนใหม่ = ล้างผลเดิม → ภาพกล้องเล่นต่อและอ่าน QR ใหม่
+  const handleRescan = () => {
+    setScanResult(null);
+    setError("");
   };
 
   return (
@@ -116,9 +77,11 @@ function VendorScanContent() {
       <div className="w-full max-w-sm h-[844px] bg-[#FAF4EC] rounded-[40px] shadow-2xl overflow-hidden flex flex-col">
         {/* Top: Dark scanner area */}
         <div className="flex-1 bg-[#1A2129] relative overflow-hidden">
-          <div
-            id="qr-reader"
-            className="absolute inset-0 w-full h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover [&>*:not(video)]:!hidden"
+          <QrScanner
+            paused={!!scanResult || !!done}
+            onScan={handleScan}
+            onError={setCameraError}
+            className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/30 pointer-events-none" />
 
@@ -156,6 +119,9 @@ function VendorScanContent() {
             <p className="text-white text-sm mt-6 drop-shadow-lg">
               {scanResult ? "✅ สแกนสำเร็จแล้ว" : "วาง QR ของผู้ใช้งานในกรอบ"}
             </p>
+            {cameraError && !scanResult && (
+              <p className="mt-2 mx-6 text-center text-xs text-red-300 drop-shadow-lg">{cameraError}</p>
+            )}
 
             {scanResult && (
               <div className="mt-3 bg-black/50 rounded-lg px-3 py-2 max-w-xs">
@@ -169,7 +135,38 @@ function VendorScanContent() {
 
         {/* Bottom: White card */}
         <div className="bg-white rounded-t-3xl p-5 shadow-2xl -mt-5 relative z-20">
+          {done ? (
+            <div className="text-center">
+              <i className="bi bi-check-circle-fill text-4xl text-emerald-500" />
+              <p className="mt-1 font-bold text-gray-900">ตัด TOKEN สำเร็จ</p>
+              <p className="text-sm text-gray-500">{done.tx.customerName} · #{done.tx.customerId}</p>
+              <p className="mt-2 text-3xl font-extrabold text-gray-900">
+                −{done.tx.amount.toLocaleString()} <span className="text-sm font-semibold text-[#C8A057]">TOKEN</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-1">ยอดคงเหลือลูกค้า {done.balance.toLocaleString()} TOKEN</p>
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => router.push("/vendor")} className="flex-1 bg-gray-200 text-gray-700 text-sm font-semibold py-3 rounded-xl">
+                  หน้าแรก
+                </button>
+                <button onClick={nextCustomer} className="flex-1 bg-[#D9A441] text-white text-sm font-semibold py-3 rounded-xl shadow-lg">
+                  สแกนคนถัดไป
+                </button>
+              </div>
+            </div>
+          ) : (
+          <>
           <p className="text-sm text-gray-700 font-semibold mb-3">{shop.name}</p>
+
+          {!scanResult && (
+            <input
+              value={manualCode}
+              onChange={(e) => { setManualCode(e.target.value.replace(/D/g, "")); setError(""); }}
+              inputMode="numeric"
+              maxLength={5}
+              placeholder="หรือพิมพ์เลข QR ลูกค้า เช่น 00429"
+              className="w-full mb-3 bg-[#FAF4EC] rounded-xl px-4 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#D9A441]"
+            />
+          )}
 
           <div className="bg-[#FAF4EC] rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
             <span className="text-xs text-gray-600 whitespace-nowrap">
@@ -178,12 +175,14 @@ function VendorScanContent() {
             <input
               type="number"
               value={amount || ""}
-              onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
+              onChange={(e) => { setAmount(parseInt(e.target.value) || 0); setError(""); }}
               suppressHydrationWarning
               placeholder="0"
               className="flex-1 bg-white rounded-lg px-3 py-2 text-xl font-bold text-gray-900 text-right outline-none focus:ring-2 focus:ring-[#D9A441]"
             />
           </div>
+
+          {error && <p className="text-center text-sm text-red-500 mb-2">{error}</p>}
 
           {scanResult ? (
             <div className="flex gap-2">
@@ -210,6 +209,8 @@ function VendorScanContent() {
             >
               ยืนยันตัด TOKEN
             </button>
+          )}
+          </>
           )}
         </div>
 

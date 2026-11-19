@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, logout } from "../../_lib/auth";
 import { shops, type Shop } from "../../_lib/mock";
+import { getShopBalance } from "../../_lib/vendorBalance";
 
 const noopSubscribe = () => () => {};
 
@@ -55,7 +56,9 @@ function MenuRow({
 export default function VendorAccountPage() {
   const router = useRouter();
   const shop = useMyShop();
-
+  // ยอดคงเหลือคำนวณจากรายการขายจริง (อ่านได้หลังเปิดหน้าใน browser แล้ว)
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const balance = mounted ? getShopBalance(shop) : 0;
 
   const handleLogout = () => {
     if (!confirm("ต้องการออกจากระบบใช่หรือไม่?")) return;
@@ -93,7 +96,7 @@ export default function VendorAccountPage() {
               <div>
                 <p className="text-xs text-gray-500">Token คงเหลือ</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900">
-                  {shop.token.toLocaleString()} <span className="text-sm">฿</span>
+                  {balance.toLocaleString()} <span className="text-sm">฿</span>
                 </p>
               </div>
               <Link

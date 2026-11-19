@@ -8,6 +8,7 @@ import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { getCurrentUser } from "../../_lib/auth";
 import { shops, type Shop } from "../../_lib/mock";
+import { getShopBalance } from "../../_lib/vendorBalance";
 
 const noopSubscribe = () => () => {};
 
@@ -42,7 +43,9 @@ type Step = "form" | "confirm" | "done";
 
 export default function VendorWithdrawPage() {
   const shop = useMyShop();
-  const balance = shop.token;
+  // ยอดคงเหลือเดียวกับหน้าบัญชีร้านค้า (รวมยอดขายจริง)
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const balance = mounted ? getShopBalance(shop) : 0;
 
   const [step, setStep] = useState<Step>("form");
   const [amountText, setAmountText] = useState("");

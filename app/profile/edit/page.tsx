@@ -12,17 +12,22 @@ export default function EditProfilePage() {
 
 function Content() {
   const router = useRouter();
-  // lazy init: อ่าน localStorage ตอน render ครั้งแรกบน client
-  const [form, setForm] = useState(() => {
+  // ช่องเริ่มว่างทุกช่อง — ข้อมูลเดิมแสดงเป็น placeholder ; ช่องที่ไม่กรอกจะใช้ค่าเดิม
+  const [current] = useState(() => {
     const u = getCurrentUser();
     return { name: u?.name ?? "", email: u?.email ?? "", phone: u?.phone ?? "" };
   });
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [error, setError] = useState("");
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      updateProfile(form);
+      updateProfile({
+        name: form.name.trim() || current.name,
+        email: form.email.trim() || current.email,
+        phone: form.phone.trim() || current.phone,
+      });
       router.push("/profile");
     } catch (err) {
       setError((err as Error).message);
@@ -36,7 +41,8 @@ function Content() {
         type={type}
         value={form[key]}
         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-        className={inputCls}
+        placeholder={current[key] || label}
+        className={`${inputCls} text-[#2F2F45] placeholder:text-gray-300`}
       />
     </label>
   );

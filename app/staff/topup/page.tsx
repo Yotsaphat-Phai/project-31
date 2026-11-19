@@ -2,25 +2,30 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { avatarPalette, useCustomers } from "../_lib/mockUsers";
+import { avatarPalette, staffProfile, useCustomers } from "../_lib/mockUsers";
+import { appendTopup } from "../_lib/topupHistory";
 
 const presets: number[] = [100, 200, 500, 1000];
 
-type PayMethod = "credit" | "promptpay" | "cash";
+type PayMethod = "promptpay" | "cash";
 
 function TopupContent() {
   const router = useRouter();
   const id = useSearchParams().get("id") ?? "";
-  const { list, loaded, find, addPending } = useCustomers();
+  const { list, loaded, find, adjustToken } = useCustomers();
   const user = find(id);
   const userIndex = user ? list.findIndex((c) => c.id === user.id) : -1;
 
   const [amount, setAmount] = useState<number>(200);
-  const [method, setMethod] = useState<PayMethod>("credit");
+  const [method, setMethod] = useState<PayMethod>("promptpay");
+  const [mode, setMode] = useState<"add" | "deduct">("add");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setAmount(200);
-    setMethod("credit");
+    setMethod("promptpay");
+    setMode("add");
+    setError("");
   }, [id]);
 
   const backToScan = () => router.push("/staff/topup-scan");
@@ -49,27 +54,33 @@ function TopupContent() {
 
   function confirm() {
     if (!user || amount <= 0) return;
-    addPending(user.id, amount);
+    const delta = mode === "add" ? amount : -amount;
+    const ok = adjustToken(user.id, delta, mode === "add" ? "เติม TOKEN โดย Staff" : "หัก TOKEN โดย Staff");
+    if (!ok) return setError("TOKEN ไม่พอให้หัก");
+    // บันทึกประวัติการเติมฝั่ง staff (เฉพาะตอนเติม)
+    if (mode === "add") {
+      appendTopup({
+        customerId: user.id,
+        customerName: user.name,
+        customerInitials: user.initials,
+        customerKind: user.kind,
+        amount,
+        staffName: staffProfile.name,
+      });
+    }
     const qs = new URLSearchParams({
       id: user.id,
       amount: String(amount),
+      mode,
       method,
-      last4: "1234",
     });
     router.push(`/staff/topup/success?${qs.toString()}`);
   }
 
+  const verb = mode === "add" ? "เติม" : "หัก";
+  const sign = mode === "add" ? "+" : "-";
+
   const methodOptions: { key: PayMethod; label: string; icon: React.ReactNode }[] = [
-    {
-      key: "credit",
-      label: "บัตรเครดิต",
-      icon: (
-        <>
-          <rect x="3" y="6" width="18" height="12" rx="2" />
-          <path d="M3 10h18M7 15h4" strokeLinecap="round" />
-        </>
-      ),
-    },
     {
       key: "promptpay",
       label: "พร้อมเพย์",
@@ -118,10 +129,25 @@ function TopupContent() {
         </div>
       </section>
 
+      {/* เติม / หัก */}
+      <div className="flex rounded-xl bg-[#f3e3d3] p-1">
+        {([["add", "เติม TOKEN"], ["deduct", "หัก TOKEN"]] as const).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => { setMode(k); setError(""); }}
+            className={`flex-1 rounded-lg py-2 text-sm font-semibold ${
+              mode === k ? "bg-white text-[#1f2a2e] shadow-sm" : "text-neutral-500"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Amount */}
       <section>
         <label className="mb-1.5 ml-1 block text-xs font-medium text-neutral-500">
-          จำนวน TOKEN ที่เติม
+          จำนวน TOKEN ที่{verb}
         </label>
         <div className="relative">
           <input
@@ -147,18 +173,19 @@ function TopupContent() {
                   : "border border-[#f3e3d3] bg-white text-[#1f2a2e]"
               }`}
             >
-              +{n.toLocaleString()}
+              {sign}{n.toLocaleString()}
             </button>
           ))}
         </div>
       </section>
 
-      {/* Payment method */}
+      {/* Payment method (เฉพาะตอนเติม) */}
+      {mode === "add" && (
       <section>
         <label className="mb-1.5 ml-1 block text-xs font-medium text-neutral-500">
           ช่องทางการชำระเงิน
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {methodOptions.map((m) => (
             <button
               key={m.key}
@@ -177,6 +204,7 @@ function TopupContent() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Summary */}
       <section className="rounded-2xl border border-[#f3e3d3] bg-white p-3 text-sm">
@@ -193,14 +221,14 @@ function TopupContent() {
           </div>
         )}
         <div className="flex justify-between py-0.5">
-          <span className="text-neutral-500">ยอดที่เติม</span>
-          <span className="font-semibold text-[#2f8f7f]">+{amount.toLocaleString()}</span>
+          <span className="text-neutral-500">ยอดที่{verb}</span>
+          <span className={`font-semibold ${mode === "add" ? "text-[#2f8f7f]" : "text-[#d9534f]"}`}>{sign}{amount.toLocaleString()}</span>
         </div>
         <hr className="my-1.5 border-dashed border-neutral-200" />
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-[#1f2a2e]">ยอดหลังเติม</span>
+          <span className="font-semibold text-[#1f2a2e]">ยอดหลัง{verb}</span>
           <span className="text-xl font-bold text-[#f0705a]">
-            {(user.token + user.pending + amount).toLocaleString()}
+            {(user.token + (mode === "add" ? amount : -amount)).toLocaleString()}
           </span>
         </div>
       </section>
@@ -210,16 +238,21 @@ function TopupContent() {
           <circle cx="12" cy="12" r="9" />
           <path d="M12 8v4M12 16v.5" />
         </svg>
-        ตรวจสอบจำนวนก่อนยืนยัน — TOKEN ที่เติมแล้วจะยกเลิกไม่ได้
+        ตรวจสอบจำนวนก่อนยืนยัน — ทำรายการแล้วจะยกเลิกไม่ได้
       </p>
+
+      {error && <p className="text-center text-sm text-red-500">{error}</p>}
+      {mode === "deduct" && amount > user.token && (
+        <p className="text-center text-xs text-red-500">TOKEN ไม่พอ (มี {user.token.toLocaleString()})</p>
+      )}
 
       <div className="mt-auto flex flex-col gap-2 pb-4">
         <button
           onClick={confirm}
-          disabled={amount <= 0}
+          disabled={amount <= 0 || (mode === "deduct" && amount > user.token)}
           className="rounded-xl bg-[#f0705a] py-3 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(240,112,90,0.9)] disabled:opacity-40"
         >
-          ยืนยันเติม TOKEN ({amount.toLocaleString()})
+          ยืนยัน{verb} TOKEN ({amount.toLocaleString()})
         </button>
         <button
           onClick={backToScan}

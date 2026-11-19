@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import UserBottomNav from "@/app/_components/UserBottomNav";
 import { getCurrentUser, logout, type SessionUser } from "../_lib/auth";
+import { getMyOrders } from "../_lib/tickets";
+import { getMyTokenBalance } from "../_lib/tokens";
 
 const noopSubscribe = () => () => {};
 let cachedRaw: string | null = null;
@@ -24,7 +26,12 @@ function readUser(): SessionUser | null {
 }
 
 // TODO: ดึงจาก backend จริงภายหลัง
-const MOCK_STATS = { tokens: 0, tickets: 1, spent: 0 };
+// ยอด TOKEN จริง: อ่านจากข้อมูลที่ staff เติม/หัก (app/_lib/tokens.ts)
+
+// จำนวนบัตรทั้งหมดของ user ที่ login อยู่ (นับจากทุกคำสั่งซื้อ)
+function countMyTickets(): number {
+  return getMyOrders().reduce((sum, o) => sum + o.tickets.length, 0);
+}
 
 type MenuItem = { icon: string; label: string; href: string; color: string; note?: string };
 
@@ -69,6 +76,8 @@ function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
 export default function ProfilePage() {
   const router = useRouter();
   const user = useSyncExternalStore(noopSubscribe, readUser, () => null);
+  const ticketCount = useSyncExternalStore(noopSubscribe, countMyTickets, () => 0);
+  const tokenBalance = useSyncExternalStore(noopSubscribe, getMyTokenBalance, () => 0);
 
   const initial = user?.name.trim().charAt(0) ?? "?";
 
@@ -104,12 +113,12 @@ export default function ProfilePage() {
         <div className="grid grid-cols-2 gap-3">
           <Link href="/token" className="bg-white rounded-2xl border border-[#EEE6E6] py-4 text-center">
             <i className="bi bi-coin text-2xl text-[#D9A53B]" />
-            <p className="text-lg font-bold text-[#2F2F45]">{MOCK_STATS.tokens.toLocaleString()}</p>
+            <p className="text-lg font-bold text-[#2F2F45]">{tokenBalance.toLocaleString()}</p>
             <p className="text-xs text-gray-500">TOKEN คงเหลือ</p>
           </Link>
           <Link href="/event/ticket" className="bg-white rounded-2xl border border-[#EEE6E6] py-4 text-center">
             <i className="bi bi-ticket-perforated-fill text-2xl text-[#EBB654]" />
-            <p className="text-lg font-bold text-[#2F2F45]">{MOCK_STATS.tickets}</p>
+            <p className="text-lg font-bold text-[#2F2F45]">{ticketCount}</p>
             <p className="text-xs text-gray-500">บัตรของฉัน</p>
           </Link>
         </div>

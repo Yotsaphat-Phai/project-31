@@ -1,28 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import UserBottomNav from "@/app/_components/UserBottomNav";
 import { QRCodeSVG } from "qrcode.react";
+import { getMyTokenBalance, getMyTokenId } from "../_lib/tokens";
 
-const USER_CODE = "VCK001";
+const noop = () => () => {};
 
 export default function TokenQRPage() {
-  const [qrValue, setQrValue] = useState("");
-  const [balance] = useState(0);
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const [, setTick] = useState(0); // เพิ่มค่าเพื่อให้วาดใหม่ → อ่านยอดล่าสุด
   const [spinning, setSpinning] = useState(false);
 
-  // สร้างค่า QR ใหม่ (ใส่เวลาไว้ด้วย เพื่อให้ QR เปลี่ยนทุกครั้งที่รีเฟรช)
-  const generateQR = () => {
-    setQrValue(`${USER_CODE}-${Date.now()}`);
-  };
+  // QR = เลข 5 หลักของ user → staff สแกนแล้วค้นเจอในรายชื่อทันที
+  const qrValue = mounted ? getMyTokenId() ?? "" : "";
+  const balance = mounted ? getMyTokenBalance() : 0;
 
-  useEffect(() => {
-    generateQR();
-  }, []);
-
+  // รีเฟรช = อ่านยอดใหม่หลัง staff เติม/หัก
   const handleRefresh = () => {
     setSpinning(true);
-    generateQR();
+    setTick((t) => t + 1);
     setTimeout(() => setSpinning(false), 600);
   };
 
@@ -55,6 +52,7 @@ export default function TokenQRPage() {
                 )}
               </div>
             </div>
+            {qrValue && <p className="mt-3 font-mono text-sm tracking-widest text-[#1F2A44]">#{qrValue}</p>}
           </div>
 
           {/* ยอดคงเหลือ + รีเฟรช */}

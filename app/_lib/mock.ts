@@ -144,7 +144,7 @@ export const events: EventItem[] = [
     id: "E001",
     title: "งานเลี้ยงรุ่น SPU 2027",
     image: "/images/event-cover.jpg",
-    dateText: "เสาร์ 20 ธ.ค. · 18:00 น.",
+    dateText: "เสาร์ 20 ธ.ค. · 18:00-22:00 น.",
     venue: "อาคารเฉลิมพระเกียรติ 50 ปี มหาวิทยาลัยศรีปทุม",
     price: 500,
     ticketsLeft: 500,

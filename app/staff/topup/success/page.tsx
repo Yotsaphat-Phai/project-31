@@ -18,11 +18,10 @@ function thaiTimeLabel(d: Date) {
 }
 function paymentChannelLabel(method: string) {
   switch (method) {
-    case "promptpay": return "พร้อมเพย์";
     case "cash":      return "เงินสด";
     case "qr":        return "QR พร้อมเพย์";
-    case "credit":
-    default:          return "บัตรเครดิต";
+    case "promptpay":
+    default:          return "พร้อมเพย์";
   }
 }
 
@@ -56,8 +55,10 @@ function TopupSuccessContent() {
 
   const id = params.get("id") ?? "";
   const amount = Number(params.get("amount") ?? "0") || 0;
-  const method = params.get("method") ?? "credit";
+  const method = params.get("method") ?? "promtpay";
   const last4 = params.get("last4") ?? "1234";
+  const isDeduct = params.get("mode") === "deduct";
+  const verb = isDeduct ? "หัก" : "เติม";
 
   const { find, loaded } = useCustomers();
   const user = find(id);
@@ -76,16 +77,14 @@ function TopupSuccessContent() {
 
   if (!loaded) return null;
 
-  const channelText = `${paymentChannelLabel(method)}${
-    method === "credit" || !method ? ` •••• ${last4}` : ""
-  }`;
+  const channelText = paymentChannelLabel(method);
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[390px] flex-col bg-[#fdf6ee] px-4 pb-5 pt-5">
       {/* Header */}
       <header className="flex items-start justify-between">
         <div>
-          <p className="text-[11px] text-neutral-500">เติมโทเคน</p>
+          <p className="text-[11px] text-neutral-500">{verb}โทเคน</p>
           <h1 className="mt-0.5 text-[22px] font-bold leading-tight text-[#1f2a2e]">
             สำเร็จแล้ว! <span aria-hidden>🎉</span>
           </h1>
@@ -127,7 +126,7 @@ function TopupSuccessContent() {
           <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#f0705a] text-[10px] font-bold text-white">
             ✓
           </span>
-          <span className="text-sm font-semibold text-[#1f2a2e]">เติมโทเคนสำเร็จ</span>
+          <span className="text-sm font-semibold text-[#1f2a2e]">{verb}โทเคนสำเร็จ</span>
         </div>
       </section>
 
@@ -139,7 +138,7 @@ function TopupSuccessContent() {
               <circle cx="9" cy="13" r="6" opacity="0.85" />
               <circle cx="15" cy="10" r="6" />
             </svg>
-            จำนวนโทเคนที่ได้รับ
+            {isDeduct ? "จำนวนโทเคนที่หัก" : "จำนวนโทเคนที่ได้รับ"}
           </span>
           <span className="text-sm">✦</span>
         </div>
@@ -158,7 +157,7 @@ function TopupSuccessContent() {
 
           <div className="flex-1">
             <p className="text-2xl font-extrabold leading-none text-[#1f2a2e]">
-              + {amount.toLocaleString()}{" "}
+              {isDeduct ? "−" : "+"} {amount.toLocaleString()}{" "}
               <span className="text-sm font-semibold text-neutral-500">โทเคน</span>
             </p>
             <div className="mt-1.5 flex items-center justify-between">
@@ -196,7 +195,7 @@ function TopupSuccessContent() {
           />
           <InfoRow
             label="ช่องทางการชำระเงิน"
-            value={channelText}
+            value={isDeduct ? "หักจากยอด TOKEN" : channelText}
             icon={
               <>
                 <rect x="3" y="6" width="18" height="12" rx="2" />
@@ -228,6 +227,12 @@ function TopupSuccessContent() {
             <path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4" />
           </svg>
           เติม TOKEN ให้คนถัดไป
+        </button>
+        <button
+          onClick={() => router.push("/staff/topup-history")}
+          className="text-center text-xs font-semibold text-[#8a8580]"
+        >
+          ดูประวัติการเติม TOKEN →
         </button>
       </div>
     </main>

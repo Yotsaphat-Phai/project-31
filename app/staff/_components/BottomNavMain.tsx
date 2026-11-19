@@ -41,7 +41,7 @@ export default function BottomNavMain({ active }: { active?: Tab }) {
   const router = useRouter();
 
   return (
-    <nav className="sticky bottom-0 z-20 flex border-t border-[#f3e3d3] bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 backdrop-blur">
+    <nav className="sticky bottom-0 z-20 mt-auto flex border-t border-[#f3e3d3] bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 backdrop-blur">
       <NavItem label="หน้าแรก" active={active === "home"} onClick={() => router.push("/staff")}>
         <path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" />
       </NavItem>

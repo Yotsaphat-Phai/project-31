@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ข้อมูลกลางของ mock backend (/api/store)
+/.data/

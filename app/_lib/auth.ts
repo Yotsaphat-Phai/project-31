@@ -234,3 +234,11 @@ export function createAccount(input: {
   writeList(CREATED_KEY, [...readList<Account>(CREATED_KEY), account]);
   return account;
 }
+
+// บัญชีที่ login อยู่ถูกระงับ / อยู่ในถังขยะ / ถูกลบถาวร หรือไม่ (ใช้เด้งออกทันที)
+export function isCurrentUserBlocked(): boolean {
+  const me = getCurrentUser();
+  if (!me) return false;
+  const account = getAccounts().find((a) => a.id === me.id);
+  return !account || !account.active || getTrashIds().includes(me.id);
+}

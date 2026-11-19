@@ -9,7 +9,7 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { getCurrentUser } from "../_lib/auth";
-import { shops, type Shop } from "../_lib/mock";
+import { shopFor, type Shop } from "../_lib/mock";
 import { getShopTx, isToday, timeLabel } from "../_lib/vendorTx";
 
 const noopSubscribe = () => () => {};
@@ -21,7 +21,7 @@ function useMyShop(): Shop {
     () => getCurrentUser()?.id ?? "",
     () => ""
   );
-  return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
+  return shopFor(vendorId);
 }
 
 // ยอดรวมวันนี้ + รายการล่าสุด: อ่านจากรายการขายจริงของร้าน (app/_lib/vendorTx.ts)

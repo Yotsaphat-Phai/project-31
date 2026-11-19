@@ -128,6 +128,7 @@ export default function HeadAdminPage() {
       });
       refresh();
       closeAdd();
+      alert(`เพิ่มบัญชีแล้ว\nใช้อีเมล ${newEmail.trim().toLowerCase()} และรหัสผ่านที่ตั้งไว้ เข้าสู่ระบบได้เลย`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "เพิ่มบัญชีไม่สำเร็จ");
     }
@@ -191,7 +192,7 @@ export default function HeadAdminPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ค้นหาชื่อบัญชี"
-            className="w-full bg-white rounded-xl p-3 text-sm outline-none border border-orange-100 mb-3"
+            className="w-full bg-white rounded-xl p-3 text-sm outline-none border border-orange-100 mb-3 text-gray-800 placeholder:text-gray-400"
           />
 
           <div className="flex flex-wrap gap-1.5 mb-3">
@@ -311,7 +312,7 @@ export default function HeadAdminPage() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="เช่น สมหญิง ใจงาม"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3 text-gray-800 placeholder:text-gray-400"
             />
 
             <label className="block text-xs font-semibold text-gray-700 mb-1">อีเมล (ใช้ login)</label>
@@ -320,7 +321,7 @@ export default function HeadAdminPage() {
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="เช่น staff3@test.com"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3 text-gray-800 placeholder:text-gray-400"
             />
 
             <label className="block text-xs font-semibold text-gray-700 mb-1">รหัสผ่าน</label>
@@ -329,7 +330,7 @@ export default function HeadAdminPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="อย่างน้อย 6 ตัวอักษร"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3 text-gray-800 placeholder:text-gray-400"
             />
 
             <label className="block text-xs font-semibold text-gray-700 mb-1">ประเภท</label>

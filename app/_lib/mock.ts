@@ -58,16 +58,6 @@ export const staff: Account[] = [
     active: true,
     createdAt: "2026-10-20T09:00:00+07:00",
   },
-  {
-    id: "S002",
-    name: "Lala (Staff)",
-    email: "staff2@test.com",
-    phone: "082-xxx-xxxx",
-    password: "123456",
-    role: "staff",
-    active: false,
-    createdAt: "2026-10-21T09:00:00+07:00",
-  },
 ];
 
 export const vendors: Account[] = [
@@ -165,3 +155,18 @@ export const shops: Shop[] = [
   { vendorId: "V001", code: "VCK001", name: "ร้านน้ำเย็น", category: "เครื่องดื่ม", token: 84000, staffCount: 3 },
   { vendorId: "V002", code: "VCK002", name: "ร้านขนมหวาน", category: "ของหวาน", token: 12500, staffCount: 2 },
 ];
+
+
+// ร้านของบัญชี vendor — บัญชีที่ head-admin เพิ่มเองยังไม่มีร้านใน shops
+// → สร้างร้านใหม่จากชื่อบัญชี (Token เริ่มที่ 0) แทนการแสดงร้านแรก
+export function shopFor(vendorId: string): Shop {
+  const found = shops.find((s) => s.vendorId === vendorId);
+  if (found) return found;
+  if (!vendorId) return shops[0]; // ยังไม่ login → ร้านแรก (เหมือนเดิม)
+  let name = "ร้านค้าใหม่";
+  try {
+    const created = JSON.parse(localStorage.getItem("p31-created-accounts") ?? "[]") as Account[];
+    name = created.find((a) => a.id === vendorId)?.name ?? name;
+  } catch {}
+  return { vendorId, code: "VNEW" + vendorId.slice(-4), name, category: "ร้านค้าใหม่", token: 0, staffCount: 0 };
+}

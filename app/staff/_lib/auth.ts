@@ -4,6 +4,7 @@
 // ภายหลังเปลี่ยนเป็นเรียก API จริงในไฟล์นี้ไฟล์เดียว
 
 import { useCallback, useEffect, useState } from "react";
+import { logout } from "../../_lib/auth";
 
 const AUTH_KEY = "staff-auth-v1";
 const USERS_KEY = "staff-users-v1";
@@ -129,9 +130,7 @@ export function signUp(input: {
 
 export function signOut() {
   saveSession(null);
-  try {
-    sessionStorage.removeItem(MAIN_SESSION_KEY); // ออกจากระบบหลักด้วย
-  } catch {}
+  logout(); // ออกจากระบบหลักด้วย + บันทึก Audit Log
 }
 
 // Hook สำหรับหน้าที่ต้องรู้สถานะล็อกอิน

@@ -3,6 +3,8 @@
  * ไม่ใช่ auth จริงระดับโปรดักชัน — เหมาะสำหรับเดโม่ / prototyping
  */
 
+import { logout } from '../../_lib/auth';
+
 const SESSION_KEY = 'next-admin:session';
 const MAIN_SESSION_KEY = 'p31-current-user'; // session ของหน้า login หลัก (/)
 const ADMIN_ROLES = ['admin']; // head-admin มีหน้าหลักแยกที่ /head-admin
@@ -45,7 +47,7 @@ export function clearSession() {
   if (!isBrowser()) return;
   try {
     sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(MAIN_SESSION_KEY); // ออกจากระบบหลักด้วย
+    logout(); // ออกจากระบบหลักด้วย + บันทึก Audit Log
   } catch {
     /* ignore */
   }

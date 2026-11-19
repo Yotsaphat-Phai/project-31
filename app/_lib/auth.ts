@@ -152,7 +152,12 @@ export function register(input: {
   return user;
 }
 
+// ออกจากระบบ → บันทึกลง Audit Log ด้วย (ถ้ามีคน login อยู่)
 export function logout() {
+  const user = getCurrentUser();
+  if (user) {
+    logAudit({ kind: "logout", role: roleLabel(user.role), user: user.name, email: user.email, by: user.name });
+  }
   try {
     sessionStorage.removeItem(SESSION_KEY);
   } catch {}

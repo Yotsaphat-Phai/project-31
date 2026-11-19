@@ -1,5 +1,5 @@
 // Audit Log จริง — บันทึกทุกครั้งที่ head-admin เพิ่ม / ระงับ / เปิด / ลบ / กู้คืนบัญชี
-// + บันทึกการเข้าสู่ระบบของทุกบัญชี (auth.ts → login)
+// + บันทึกการเข้าสู่ระบบ / ออกจากระบบของทุกบัญชี (auth.ts → login / logout)
 // เก็บใน localStorage key "p31-audit-log" (SyncStore ซิงก์ให้ทุกเครื่องเห็นเหมือนกัน)
 
 export type AuditKind =
@@ -10,7 +10,8 @@ export type AuditKind =
   | "restore"
   | "purge"
   | "login"
-  | "login_blocked";
+  | "login_blocked"
+  | "logout";
 
 export type AuditEntry = {
   id: string;

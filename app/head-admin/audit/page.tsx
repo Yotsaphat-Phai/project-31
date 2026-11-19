@@ -8,7 +8,7 @@ type FilterType = "ทั้งหมด" | "เข้าสู่ระบบ" 
 
 const FILTER_KINDS: Record<FilterType, AuditKind[] | null> = {
   ทั้งหมด: null,
-  เข้าสู่ระบบ: ["login", "login_blocked"],
+  เข้าสู่ระบบ: ["login", "login_blocked", "logout"],
   เพิ่ม: ["add"],
   "ระงับ/เปิด": ["suspend", "unsuspend"],
   "ลบ/กู้คืน": ["trash", "restore", "purge"],
@@ -24,6 +24,7 @@ const KIND_STYLE: Record<AuditKind, { label: string; icon: string; color: string
   purge: { label: "ลบถาวร บัญชี", icon: "bi-x-lg", color: "bg-red-600" },
   login: { label: "เข้าสู่ระบบ", icon: "bi-box-arrow-in-right", color: "bg-indigo-400" },
   login_blocked: { label: "ถูกปฏิเสธการเข้าสู่ระบบ", icon: "bi-shield-lock", color: "bg-orange-400" },
+  logout: { label: "ออกจากระบบ", icon: "bi-box-arrow-right", color: "bg-gray-500" },
 };
 
 // อ่าน log ใหม่ทุก 2 วินาที → ทำ/เปลี่ยนจากหน้าบัญชีหรือเครื่องอื่นแล้วขึ้นเองโดยไม่ต้องรีเฟรช

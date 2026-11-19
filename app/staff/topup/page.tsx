@@ -2,11 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { avatarPalette, useCustomers } from "../_lib/mockUsers";
+import { avatarPalette, staffProfile, useCustomers } from "../_lib/mockUsers";
+import { appendTopup } from "../_lib/topupHistory";
 
 const presets: number[] = [100, 200, 500, 1000];
 
-type PayMethod = "credit" | "promptpay" | "cash";
+type PayMethod = "promptpay" | "cash";
 
 function TopupContent() {
   const router = useRouter();
@@ -22,7 +23,7 @@ function TopupContent() {
 
   useEffect(() => {
     setAmount(200);
-    setMethod("credit");
+    setMethod("promtpay");
     setMode("add");
     setError("");
   }, [id]);
@@ -53,6 +54,15 @@ function TopupContent() {
 
   function confirm() {
     if (!user || amount <= 0) return;
+    addPending(user.id, amount);
+    appendTopup({
+      customerId: user.id,
+      customerName: user.name,
+      customerInitials: user.initials,
+      customerKind: user.kind,
+      amount,
+      staffName: staffProfile.name,
+    });
     const delta = mode === "add" ? amount : -amount;
     const ok = adjustToken(user.id, delta, mode === "add" ? "เติม TOKEN โดย Staff" : "หัก TOKEN โดย Staff");
     if (!ok) return setError("TOKEN ไม่พอให้หัก");
@@ -61,7 +71,6 @@ function TopupContent() {
       amount: String(amount),
       mode,
       method,
-      last4: "1234",
     });
     router.push(`/staff/topup/success?${qs.toString()}`);
   }
@@ -70,16 +79,6 @@ function TopupContent() {
   const sign = mode === "add" ? "+" : "-";
 
   const methodOptions: { key: PayMethod; label: string; icon: React.ReactNode }[] = [
-    {
-      key: "credit",
-      label: "บัตรเครดิต",
-      icon: (
-        <>
-          <rect x="3" y="6" width="18" height="12" rx="2" />
-          <path d="M3 10h18M7 15h4" strokeLinecap="round" />
-        </>
-      ),
-    },
     {
       key: "promptpay",
       label: "พร้อมเพย์",
@@ -184,7 +183,7 @@ function TopupContent() {
         <label className="mb-1.5 ml-1 block text-xs font-medium text-neutral-500">
           ช่องทางการชำระเงิน
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {methodOptions.map((m) => (
             <button
               key={m.key}

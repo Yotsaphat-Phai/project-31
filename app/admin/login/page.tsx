@@ -96,7 +96,7 @@ export default function AdminLogin() {
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(null); }}
-            placeholder="name@test.com"
+            placeholder="admin@test.com"
             autoComplete="username"
           />
         </label>

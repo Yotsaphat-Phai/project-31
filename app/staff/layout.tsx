@@ -6,20 +6,37 @@ import { usePathname, useRouter } from "next/navigation";
 import { Noto_Sans_Thai } from "next/font/google";
 import "./staff.css";
 import { loadSession } from "./_lib/auth";
+import { applyStaffFontSize, loadStaffFontSize } from "./_lib/fontSize";
 
-// ฟอนต์และสไตล์เฉพาะส่วน Staff ไม่กระทบหน้าอื่นของโปรเจกต์
 const notoThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-// เส้นทางภายใต้ /staff ที่ไม่ต้องล็อกอิน
 const PUBLIC_PATHS = new Set<string>(["/staff/login"]);
 
 export default function StaffLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname() || "/staff";
   const [ready, setReady] = useState(false);
+
+  // โหลดขนาดตัวอักษรให้มีผลทันทีก่อน render หน้าใด ๆ
+  useEffect(() => {
+    applyStaffFontSize(loadStaffFontSize());
+    const onChange = (e: Event) => {
+      const detail = (e as CustomEvent<"sm" | "md" | "lg">).detail;
+      if (detail) applyStaffFontSize(detail);
+    };
+    window.addEventListener("staff-font-size-change", onChange);
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === "staff-font-size-v1") applyStaffFontSize(loadStaffFontSize());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("staff-font-size-change", onChange);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   useEffect(() => {
     const isPublic = PUBLIC_PATHS.has(pathname);
@@ -30,7 +47,6 @@ export default function StaffLayout({ children }: { children: ReactNode }) {
       return;
     }
     if (session && isPublic) {
-      // ล็อกอินอยู่แล้วแต่กดเข้าหน้า login — พาไปหน้าหลัก
       router.replace("/staff");
       return;
     }
@@ -38,7 +54,10 @@ export default function StaffLayout({ children }: { children: ReactNode }) {
   }, [pathname, router]);
 
   return (
-    <div className={`${notoThai.className} min-h-dvh bg-neutral-200 antialiased`}>
+    <div
+      data-staff-root
+      className={`${notoThai.className} min-h-dvh bg-neutral-200 antialiased`}
+    >
       {ready ? children : <SplashScreen />}
     </div>
   );

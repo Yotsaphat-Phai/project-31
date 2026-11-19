@@ -64,7 +64,7 @@ function toSession(account: Account): SessionUser {
 
 function saveSession(user: SessionUser) {
   try {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
   } catch {}
 }
 
@@ -154,13 +154,13 @@ export function register(input: {
 
 export function logout() {
   try {
-    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
   } catch {}
 }
 
 export function getCurrentUser(): SessionUser | null {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    const raw = sessionStorage.getItem(SESSION_KEY);
     return raw ? (JSON.parse(raw) as SessionUser) : null;
   } catch {
     return null;

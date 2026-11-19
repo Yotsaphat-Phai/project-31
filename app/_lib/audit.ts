@@ -39,7 +39,7 @@ export function roleLabel(role: string): string {
 // ชื่อคนที่ login อยู่ (อ่านตรงจาก session — ไม่ import auth.ts เพื่อไม่ให้ import วนกัน)
 function currentUserName(): string {
   try {
-    const raw = localStorage.getItem("p31-current-user");
+    const raw = sessionStorage.getItem("p31-current-user");
     return raw ? (JSON.parse(raw) as { name: string }).name : "Head Admin";
   } catch {
     return "Head Admin";

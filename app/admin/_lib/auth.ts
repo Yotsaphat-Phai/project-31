@@ -20,7 +20,7 @@ export function getSession(): AdminSession | null {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (raw) return JSON.parse(raw) as AdminSession;
     // login จากหน้าหลัก (/) ด้วยบัญชี admin → เข้าส่วน admin ได้เลย
-    const main = localStorage.getItem(MAIN_SESSION_KEY);
+    const main = sessionStorage.getItem(MAIN_SESSION_KEY);
     if (!main) return null;
     const u = JSON.parse(main) as { email: string; role: string };
     return ADMIN_ROLES.includes(u.role) ? { email: u.email, loggedInAt: new Date().toISOString() } : null;
@@ -45,7 +45,7 @@ export function clearSession() {
   if (!isBrowser()) return;
   try {
     sessionStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(MAIN_SESSION_KEY); // ออกจากระบบหลักด้วย
+    sessionStorage.removeItem(MAIN_SESSION_KEY); // ออกจากระบบหลักด้วย
   } catch {
     /* ignore */
   }

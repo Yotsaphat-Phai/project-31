@@ -98,7 +98,7 @@ export const admins: Account[] = [
     id: "A001",
     name: "จัตติเทพ ชาติพหล",
     email: "admin@test.com",
-    phone: "084-xxx-xxxx",
+    phone: "082-xxx-xxxx",
     password: "123456",
     role: "admin",
     active: true,

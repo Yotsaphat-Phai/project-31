@@ -111,3 +111,30 @@
   animation: staff-ring-expand 1.8s ease-out infinite;
 }
 .s-ring-expand::after { animation-delay: 0.9s; }
+
+/* ================================================================
+   Global font-size scale (เฉพาะส่วน staff)
+   ปรับได้จากหน้า ตั้งค่าแอป → ขนาดตัวอักษร
+   ================================================================ */
+html[data-staff-font="sm"] [data-staff-root] { --staff-root-font: 14px; }
+html[data-staff-font="md"] [data-staff-root] { --staff-root-font: 16px; }
+html[data-staff-font="lg"] [data-staff-root] { --staff-root-font: 18px; }
+
+[data-staff-root] {
+  font-size: var(--staff-root-font, 16px);
+}
+
+/* แปลง Tailwind text-* ภายใน staff ให้ scale ตาม root
+   (ใช้ em เพื่อตอบสนองค่า --staff-root-font) */
+[data-staff-root] .text-\[10px\] { font-size: 0.625em; }   /* 10 / 16 */
+[data-staff-root] .text-\[11px\] { font-size: 0.6875em; }  /* 11 / 16 */
+[data-staff-root] .text-xs       { font-size: 0.75em;  }   /* 12 */
+[data-staff-root] .text-\[13px\] { font-size: 0.8125em; }
+[data-staff-root] .text-sm       { font-size: 0.875em; }   /* 14 */
+[data-staff-root] .text-\[15px\] { font-size: 0.9375em; }
+[data-staff-root] .text-base     { font-size: 1em;     }   /* 16 */
+[data-staff-root] .text-\[17px\] { font-size: 1.0625em; }
+[data-staff-root] .text-lg       { font-size: 1.125em; }   /* 18 */
+[data-staff-root] .text-xl       { font-size: 1.25em;  }   /* 20 */
+[data-staff-root] .text-2xl      { font-size: 1.5em;   }
+[data-staff-root] .text-3xl      { font-size: 1.875em; }

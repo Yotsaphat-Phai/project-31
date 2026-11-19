@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavMain from "../_components/BottomNavMain";
-import { useStaffProfile } from "../_lib/mockUsers";
+import { staffProfile } from "../_lib/mockUsers";
 import { signOut } from "../_lib/auth";
 
 type RowProps = {
@@ -53,22 +54,26 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 }
 
 export default function StaffAccountPage() {
-  const staffProfile = useStaffProfile();
   const router = useRouter();
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const openMail = () =>
     typeof window !== "undefined" && window.location.assign(`mailto:${staffProfile.email}`);
   const openTel = () =>
-    typeof window !== "undefined" && window.location.assign(`tel:${staffProfile.phone.replace(/-/g, "")}`);
+    typeof window !== "undefined" &&
+    window.location.assign(`tel:${staffProfile.phone.replace(/-/g, "")}`);
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[390px] flex-col bg-[#fdf6ee]">
-      {/* Header */}
       <header className="px-4 pt-5">
         <h1 className="text-xl font-semibold text-[#1f2a2e]">บัญชีของฉัน</h1>
       </header>
 
-      {/* Profile card */}
       <section className="mx-4 mt-3 flex items-center gap-3 rounded-[22px] border border-[#f3e3d3] bg-white p-3.5">
         <div className="relative shrink-0">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f3a9a0] text-xl font-semibold text-white">
@@ -81,9 +86,7 @@ export default function StaffAccountPage() {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold text-[#1f2a2e]">
-            {staffProfile.name}
-          </p>
+          <p className="truncate text-[15px] font-semibold text-[#1f2a2e]">{staffProfile.name}</p>
           <p className="truncate text-xs text-neutral-500">{staffProfile.role}</p>
           <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-neutral-400">
             <span className="rounded bg-[#fbe3dc] px-1.5 py-0.5 text-[10px] font-semibold text-[#f0705a]">
@@ -93,7 +96,6 @@ export default function StaffAccountPage() {
         </div>
       </section>
 
-      {/* Info */}
       <div className="mx-4 mt-4">
         <SectionHeader>ข้อมูลติดต่อ</SectionHeader>
         <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
@@ -118,26 +120,6 @@ export default function StaffAccountPage() {
         </section>
       </div>
 
-      {/* Activity */}
-      <div className="mx-4 mt-4">
-        <SectionHeader>กิจกรรม</SectionHeader>
-        <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
-          <Row
-            icon={
-              <>
-                <ellipse cx="12" cy="6" rx="7" ry="2.5" />
-                <path d="M5 6v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6" />
-                <path d="M5 12v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6" />
-              </>
-            }
-            label="ประวัติการเติม TOKEN"
-            onClick={() => router.push("/staff/topup-history")}
-            last
-          />
-        </section>
-      </div>
-
-      {/* Settings */}
       <div className="mx-4 mt-4">
         <SectionHeader>ตั้งค่า</SectionHeader>
         <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
@@ -149,7 +131,17 @@ export default function StaffAccountPage() {
               </>
             }
             label="การแจ้งเตือน"
-            onClick={() => router.push("/staff/notifications")}
+            onClick={() => router.push("/staff/account/notifications")}
+          />
+          <Row
+            icon={
+              <>
+                <rect x="4" y="4" width="16" height="16" rx="3" />
+                <path d="M8 9h8M8 13h8M8 17h5" />
+              </>
+            }
+            label="ตั้งค่าแอป"
+            onClick={() => router.push("/staff/account/settings")}
           />
           <Row
             icon={
@@ -159,13 +151,12 @@ export default function StaffAccountPage() {
               </>
             }
             label="ช่วยเหลือ"
-            onClick={() => router.push("/staff/help")}
+            onClick={() => router.push("/staff/account/help")}
             last
           />
         </section>
       </div>
 
-      {/* Logout */}
       <div className="mx-4 mb-4 mt-4">
         <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
           <Row
@@ -181,15 +172,22 @@ export default function StaffAccountPage() {
             onClick={() => {
               if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
                 signOut();
-                router.replace("/");
+                router.replace("/staff/login");
               }
             }}
           />
         </section>
-        <p className="mt-2 text-center text-[10px] text-neutral-400">
-          Staff App · เวอร์ชัน 1.0.0
-        </p>
+        <p className="mt-2 text-center text-[10px] text-neutral-400">Staff App · เวอร์ชัน 1.0.0</p>
       </div>
+
+      {toast && (
+        <div
+          role="status"
+          className="pointer-events-none fixed bottom-20 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[#1f2a2e] px-4 py-2 text-xs font-medium text-white shadow-lg"
+        >
+          {toast}
+        </div>
+      )}
 
       <BottomNavMain active="account" />
     </main>

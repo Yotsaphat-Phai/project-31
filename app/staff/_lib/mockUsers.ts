@@ -4,7 +4,7 @@
 // ทั้งหน้าแรก, หน้าผู้เข้าร่วม, หน้าสแกน, หน้าค้นหา, หน้าเติม TOKEN ใช้ข้อมูลชุดเดียวกันหมด
 // ภายหลังเปลี่ยนเป็นเรียก API ของระบบแอดมินในไฟล์นี้ไฟล์เดียว
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type AttendeeKind = "VIP" | "ทั่วไป";
 
@@ -55,7 +55,7 @@ export const staffProfile = {
   employeeId: "ST-00142",
   phone: "093-913-4715",
   email: "stafflemon@test.com",
-  shift: "ประรุ่น 2 · 18:00-22:00",
+  shift: "ประรุ่น 2 · 15:00-22:00",
 };
 
 // สีพื้นของวงกลมตัวย่อ สลับให้ไม่ซ้ำกัน
@@ -90,19 +90,17 @@ export function useCustomers() {
   }, []);
 
   const update = useCallback((fn: (prev: Customer[]) => Customer[]) => {
-    // อ่านจาก storage ล่าสุดเสมอ — กันเขียนทับบัตรที่ user เพิ่งซื้อหลังเปิดหน้านี้
-    // คำนวณนอก setList เพื่อไม่ให้ทำซ้ำ 2 รอบใน dev (StrictMode)
-    const next = fn(load());
-    save(next);
-    setList(next);
+    setList((prev) => {
+      const next = fn(prev ?? load());
+      save(next);
+      return next;
+    });
   }, []);
 
   const find = useCallback(
     (id: string) => {
       const needle = id.trim().toUpperCase().replace(/^#/, "");
-      const match = (c: Customer) => c.id.toUpperCase() === needle;
-      // ไม่เจอใน state → อ่าน storage ใหม่ (บัตร/บัญชี TOKEN ที่สร้างหลังเปิดหน้า staff)
-      return list?.find(match) ?? (list ? load().find(match) ?? null : null);
+      return list?.find((c) => c.id.toUpperCase() === needle) ?? null;
     },
     [list]
   );
@@ -137,109 +135,5 @@ export function useCustomers() {
     [update]
   );
 
-  // เติม (delta > 0) หรือหัก (delta < 0) TOKEN ทันที + บันทึกประวัติ — คืน false ถ้ายอดไม่พอ
-  const adjustToken = useCallback(
-    (id: string, delta: number, note: string) => {
-      const cur = load().find((c) => c.id === id);
-      if (!cur || cur.token + delta < 0) return false;
-      update((l) => l.map((c) => (c.id === id ? { ...c, token: c.token + delta } : c)));
-      logToken({ customerId: id, delta, note, at: new Date().toISOString() });
-      return true;
-    },
-    [update]
-  );
-
-  return { list: list ?? [], loaded: list !== null, find, checkIn, addPending, adjustToken };
-}
-
-// ===== ใช้นอก React hook: ร้านค้าตัด TOKEN จากเลข QR ของ user =====
-export function chargeToken(
-  id: string,
-  amount: number,
-  note: string
-): { ok: true; customer: Customer } | { ok: false; error: string } {
-  const needle = id.trim().replace(/^#/, "");
-  const list = load();
-  const cur = list.find((c) => c.id === needle);
-  if (!cur) return { ok: false, error: "ไม่พบผู้ใช้จาก QR นี้" };
-  if (amount <= 0) return { ok: false, error: "กรุณากรอกยอดชำระ" };
-  if (cur.token < amount) return { ok: false, error: `TOKEN ไม่พอ (มี ${cur.token.toLocaleString()})` };
-  const customer = { ...cur, token: cur.token - amount };
-  save(list.map((c) => (c.id === needle ? customer : c)));
-  logToken({ customerId: needle, delta: -amount, note, at: new Date().toISOString() });
-  return { ok: true, customer };
-}
-
-// ===== ประวัติ TOKEN (เติม/หัก) =====
-const TOKEN_LOG_KEY = "p31-token-log";
-
-export type TokenLog = { customerId: string; delta: number; note: string; at: string };
-
-function logToken(entry: TokenLog) {
-  try {
-    const list: TokenLog[] = JSON.parse(localStorage.getItem(TOKEN_LOG_KEY) ?? "[]");
-    localStorage.setItem(TOKEN_LOG_KEY, JSON.stringify([entry, ...list]));
-  } catch {}
-}
-
-export function getTokenLog(customerId: string): TokenLog[] {
-  try {
-    const list: TokenLog[] = JSON.parse(localStorage.getItem(TOKEN_LOG_KEY) ?? "[]");
-    return list.filter((l) => l.customerId === customerId);
-  } catch {
-    return [];
-  }
-}
-
-// ===== ใช้จากฝั่ง user (นอก React hook) =====
-
-// อ่านผู้เข้าร่วมตามเลขตั๋ว — ใช้แสดงสถานะเช็คอินในหน้า "บัตรของฉัน"
-export function getCustomer(id: string): Customer | null {
-  return load().find((c) => c.id === id) ?? null;
-}
-
-// ออกบัตรใหม่หลัง user ชำระเงิน → staff สแกนเลขตั๋วนี้ได้ทันที
-export function addCustomer(input: { name: string; tickets: number; batch?: string }): Customer {
-  const list = load();
-  const maxId = list.reduce((m, c) => Math.max(m, parseInt(c.id, 10) || 0), 0);
-  const name = input.name.trim() || "ผู้เข้าร่วม";
-  const customer: Customer = {
-    id: String(maxId + 1).padStart(5, "0"),
-    initials: name.replace(/\s+/g, "").slice(0, 2),
-    name,
-    kind: "ทั่วไป",
-    batch: input.batch ?? "20XX",
-    tickets: input.tickets,
-    token: 0,
-    pending: 0,
-    checkedIn: false,
-  };
-  save([customer, ...list]);
-  return customer;
-}
-
-
-// ข้อมูล staff ที่ login อยู่ (จากหน้า login หลัก) — ชื่อ/อีเมล/เบอร์ตรงกับบัญชีจริง
-// ยังไม่มี session → ใช้ staffProfile เดิม
-const noopSubscribe = () => () => {};
-export function useStaffProfile() {
-  const raw = useSyncExternalStore(
-    noopSubscribe,
-    () => sessionStorage.getItem("p31-current-user") ?? "",
-    () => ""
-  );
-  try {
-    const u = JSON.parse(raw) as { id: string; name: string; email: string; phone: string };
-    if (!u?.name) return staffProfile;
-    return {
-      ...staffProfile,
-      initials: u.name.replace(/\s+/g, "").slice(0, 2),
-      name: u.name,
-      email: u.email,
-      phone: u.phone || "-",
-      employeeId: u.id,
-    };
-  } catch {
-    return staffProfile;
-  }
+  return { list: list ?? [], loaded: list !== null, find, checkIn, addPending };
 }

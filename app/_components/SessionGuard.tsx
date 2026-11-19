@@ -5,7 +5,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isCurrentUserBlocked, logout } from "../_lib/auth";
+import { getCurrentUser, isCurrentUserBlocked, logout } from "../_lib/auth";
 
 export default function SessionGuard() {
   const router = useRouter();
@@ -13,12 +13,15 @@ export default function SessionGuard() {
   useEffect(() => {
     const check = () => {
       if (!isCurrentUserBlocked()) return;
+      const role = getCurrentUser()?.role;
       logout();
       try {
         localStorage.removeItem("staff-auth-v1"); // session ของส่วน staff ด้วย
+        sessionStorage.removeItem("next-admin:session"); // session ของส่วน admin ด้วย
       } catch {}
       alert("บัญชีของคุณถูกระงับ กรุณาติดต่อ Admin");
-      router.replace("/");
+      // admin / head-admin กลับหน้า login ของ admin, คนอื่นกลับหน้าแรก
+      router.replace(role === "admin" || role === "head-admin" ? "/admin/login" : "/");
     };
     check();
     const timer = setInterval(check, 3000);

@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { setSession } from '../_lib/auth';
+import { loginAdminArea } from '../../_lib/auth';
 
-// ข้อมูลเข้าสู่ระบบของแอดมิน (เฉพาะเดโม่)
-const ADMIN_EMAIL = 'admin@test.com';
-const ADMIN_PASSWORD = '123456';
+// OTP ของเดโม่ — บัญชี Admin / Head Admin ตรวจกับระบบ login กลาง (app/_lib/auth.ts)
+// จึงใช้ได้ทั้ง admin@test.com, head@test.com และบัญชี Admin ที่ head-admin เพิ่มเอง
 const ADMIN_OTP = '123456';
 
 /** หน้าเข้าสู่ระบบ Admin — อีเมล + รหัสผ่าน + OTP 6 หลัก */
@@ -53,22 +53,23 @@ export default function AdminLogin() {
     if (!canSubmit) return;
 
     const otpCode = otp.join('');
-    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-      setError('อีเมลผู้ดูแลไม่ถูกต้อง');
-      return;
-    }
-    if (password !== ADMIN_PASSWORD) {
-      setError('รหัสผ่านไม่ถูกต้อง');
-      return;
-    }
     if (otpCode !== ADMIN_OTP) {
       setError('รหัส OTP ไม่ถูกต้อง');
       return;
     }
 
-    setError(null);
-    setSession(email.trim().toLowerCase());
-    router.replace('/admin');
+    try {
+      const user = loginAdminArea(email, password);
+      setError(null);
+      if (user.role === 'head-admin') {
+        router.replace('/head-admin');
+        return;
+      }
+      setSession(user.email);
+      router.replace('/admin');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'เข้าสู่ระบบไม่สำเร็จ');
+    }
   };
 
   return (

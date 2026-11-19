@@ -9,9 +9,26 @@ import { mockAccounts, ROLE_HOME, type Account, type Role } from "./mock";
 
 const REGISTERED_KEY = "p31-registered-users";
 const SESSION_KEY = "p31-current-user";
-const OVERRIDES_KEY = "p31-account-overrides"; // แก้ข้อมูล/รหัสผ่านของบัญชี mock (แก้ไฟล์ไม่ได้)
+const OVERRIDES_KEY = "p31-account-overrides"; // แก้ข้อมูล/รหัสผ่าน/สถานะของบัญชี mock (แก้ไฟล์ไม่ได้)
+const CREATED_KEY = "p31-created-accounts"; // บัญชี admin/staff/vendor ที่ head-admin เพิ่มเอง
+const TRASH_KEY = "p31-trash-accounts"; // id บัญชีที่ head-admin ย้ายไปถังขยะ
+const PURGED_KEY = "p31-purged-accounts"; // id บัญชี mock ที่ head-admin ลบถาวร
 
-type Overrides = Record<string, Partial<Pick<Account, "name" | "email" | "phone" | "password">>>;
+type Overrides = Record<string, Partial<Pick<Account, "name" | "email" | "phone" | "password" | "active">>>;
+
+function readList<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw) as T[];
+  } catch {}
+  return [];
+}
+
+function writeList<T>(key: string, list: T[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch {}
+}
 
 function readOverrides(): Overrides {
   try {
@@ -50,10 +67,13 @@ function saveSession(user: SessionUser) {
   } catch {}
 }
 
-// บัญชีทั้งหมด = mock (ทุก role) + คนที่สมัครเอง
+// บัญชีทั้งหมด = mock (ทุก role) + คนที่สมัครเอง + บัญชีที่ head-admin เพิ่ม (ไม่รวมที่ลบถาวร)
 export function getAccounts(): Account[] {
   const ov = readOverrides();
-  return [...mockAccounts, ...readRegistered()].map((a) => (ov[a.id] ? { ...a, ...ov[a.id] } : a));
+  const purged = readList<string>(PURGED_KEY);
+  return [...mockAccounts, ...readRegistered(), ...readList<Account>(CREATED_KEY)]
+    .filter((a) => !purged.includes(a.id))
+    .map((a) => (ov[a.id] ? { ...a, ...ov[a.id] } : a));
 }
 
 // login ด้วยอีเมลหรือเบอร์โทร — ผิดจะ throw Error พร้อมข้อความภาษาไทย
@@ -65,7 +85,7 @@ export function login(emailOrPhone: string, password: string): SessionUser {
   if (!account || account.password !== password) {
     throw new Error("อีเมล/เบอร์โทร หรือรหัสผ่านไม่ถูกต้อง");
   }
-  if (!account.active) {
+  if (!account.active || getTrashIds().includes(account.id)) {
     throw new Error("บัญชีนี้ถูกระงับ กรุณาติดต่อ Admin");
   }
   const user = toSession(account);
@@ -157,4 +177,60 @@ function writeOverride(id: string, patch: Overrides[string]) {
   try {
     localStorage.setItem(OVERRIDES_KEY, JSON.stringify(ov));
   } catch {}
+}
+
+// ===== ใช้ในหน้า head-admin (จัดการบัญชี) =====
+
+// เปิด/ระงับบัญชี — ระงับแล้ว login ไม่ได้
+export function setAccountActive(id: string, active: boolean) {
+  writeOverride(id, { active });
+}
+
+export function getTrashIds(): string[] {
+  return readList<string>(TRASH_KEY);
+}
+
+// ย้ายไปถังขยะ / กู้คืน — อยู่ในถังขยะ login ไม่ได้
+export function setAccountTrashed(id: string, trashed: boolean) {
+  const ids = getTrashIds().filter((x) => x !== id);
+  writeList(TRASH_KEY, trashed ? [...ids, id] : ids);
+}
+
+// ลบถาวร — บัญชีที่เพิ่มเองลบออกจากรายการ, บัญชี mock ซ่อนไว้ (แก้ไฟล์ไม่ได้)
+export function purgeAccount(id: string) {
+  setAccountTrashed(id, false);
+  const created = readList<Account>(CREATED_KEY);
+  if (created.some((a) => a.id === id)) {
+    writeList(CREATED_KEY, created.filter((a) => a.id !== id));
+  } else {
+    writeList(PURGED_KEY, [...readList<string>(PURGED_KEY), id]);
+  }
+}
+
+// head-admin เพิ่มบัญชี admin / staff / vendor
+export function createAccount(input: {
+  name: string;
+  email: string;
+  password: string;
+  role: "admin" | "staff" | "vendor";
+}): Account {
+  const name = input.name.trim();
+  const email = input.email.trim().toLowerCase();
+  if (!name || !email) throw new Error("กรุณากรอกชื่อและอีเมล");
+  if (input.password.length < 6) throw new Error("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+  if (getAccounts().some((a) => a.email.toLowerCase() === email)) {
+    throw new Error("อีเมลนี้มีบัญชีอยู่แล้ว");
+  }
+  const account: Account = {
+    id: input.role[0].toUpperCase() + Date.now(),
+    name,
+    email,
+    phone: "",
+    password: input.password,
+    role: input.role,
+    active: true,
+    createdAt: new Date().toISOString(),
+  };
+  writeList(CREATED_KEY, [...readList<Account>(CREATED_KEY), account]);
+  return account;
 }

@@ -100,15 +100,15 @@ export default function AuditLogPage() {
 
       <nav className="bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around">
         <Link href="/head-admin/report" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">📊</span>
+          <i className="bi bi-bar-chart-fill text-2xl leading-none" />
           <span className="text-[10px] mt-0.5">รายงาน</span>
         </Link>
         <Link href="/head-admin" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">👥</span>
+          <i className="bi bi-people-fill text-2xl leading-none" />
           <span className="text-[10px] mt-0.5">บัญชี</span>
         </Link>
         <Link href="/head-admin/audit" className="flex flex-col items-center text-[#9E4B8E] py-1">
-          <span className="text-xl">📋</span>
+          <i className="bi bi-journal-text text-2xl leading-none" />
           <span className="text-[10px] mt-0.5 font-semibold">Audit Log</span>
         </Link>
       </nav>

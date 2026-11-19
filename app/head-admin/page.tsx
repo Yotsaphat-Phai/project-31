@@ -1,63 +1,89 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  logout,
+  getAccounts,
+  getTrashIds,
+  setAccountActive,
+  setAccountTrashed,
+  purgeAccount as purgeFromAuth,
+  createAccount,
+} from "../_lib/auth";
 
 type Role = "Admin" | "Staff" | "Vendor";
 type Filter = "ทั้งหมด" | Role | "ระงับ" | "ถังขยะ";
 
 type Account = {
-  id: number;
+  id: string;
   name: string;
+  email: string;
   role: Role;
   active: boolean;
   color: string;
-  deleted?: boolean;
+  deleted: boolean;
 };
 
-const STORAGE_KEY = "head-admin-accounts";
+const ROLE_LABEL: Record<string, Role> = { admin: "Admin", staff: "Staff", vendor: "Vendor" };
+const ROLE_COLOR: Record<Role, string> = {
+  Admin: "bg-blue-500",
+  Staff: "bg-teal-600",
+  Vendor: "bg-orange-400",
+};
 
-const initialAccounts: Account[] = [
-  { id: 1, name: "ณัฐพงศ์ พรมมาตร", role: "Admin", active: true, color: "bg-blue-500" },
-  { id: 2, name: "ลลิตภัทร กันทา", role: "Staff", active: true, color: "bg-teal-600" },
-  { id: 3, name: "สมชาย ใจดี", role: "Staff", active: false, color: "bg-gray-400" },
-  { id: 4, name: "มานี รักงาน", role: "Staff", active: true, color: "bg-teal-600" },
-  { id: 5, name: "ปรีชา สุขใจ", role: "Admin", active: true, color: "bg-blue-500" },
-  { id: 6, name: "ร้านน้ำเย็น", role: "Vendor", active: true, color: "bg-[#C8A057]" },
-  { id: 7, name: "ร้านขนมหวาน", role: "Vendor", active: true, color: "bg-pink-400" },
-  { id: 8, name: "ร้านอาหารทะเล", role: "Vendor", active: true, color: "bg-orange-400" },
-  { id: 9, name: "ร้านก๋วยเตี๋ยว", role: "Vendor", active: false, color: "bg-yellow-500" },
-];
+// ดึงบัญชีจริงจากระบบ login (mock.ts + ที่เพิ่มเอง) เฉพาะ Admin / Staff / Vendor
+function loadAccounts(): Account[] {
+  const trash = getTrashIds();
+  return getAccounts()
+    .filter((a) => a.role in ROLE_LABEL)
+    .map((a) => {
+      const role = ROLE_LABEL[a.role];
+      return {
+        id: a.id,
+        name: a.name,
+        email: a.email,
+        role,
+        active: a.active,
+        color: ROLE_COLOR[role],
+        deleted: trash.includes(a.id),
+      };
+    });
+}
 
 export default function HeadAdminPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("ทั้งหมด");
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<Role>("Staff");
-  const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
-  const [loaded, setLoaded] = useState(false);
+  const [, setVersion] = useState(0);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setAccounts(JSON.parse(saved));
-    } catch {}
-    setLoaded(true);
-  }, []);
+  // อ่าน localStorage ได้เฉพาะฝั่ง browser — loaded เป็น true หลังโหลดหน้าเสร็จ
+  const loaded = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const accounts: Account[] = loaded ? loadAccounts() : [];
 
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-    } catch {}
-  }, [accounts, loaded]);
+  // บันทึกแล้วสั่งให้หน้าวาดใหม่ (อ่านค่าล่าสุดจาก localStorage)
+  const refresh = () => setVersion((v) => v + 1);
 
-  const toggle = (id: number) =>
-    setAccounts(accounts.map((a) => (a.id === id ? { ...a, active: !a.active } : a)));
+  // เปิด/ระงับ — ระงับแล้วบัญชีนั้น login ไม่ได้
+  const toggle = (id: string) => {
+    const target = accounts.find((a) => a.id === id);
+    if (!target) return;
+    setAccountActive(id, !target.active);
+    refresh();
+  };
 
-  // ลบ = ย้ายไปถังขยะ (กู้คืนได้)
-  const removeAccount = (id: number, name: string) => {
+  // ลบ = ย้ายไปถังขยะ (กู้คืนได้) — อยู่ในถังขยะ login ไม่ได้
+  const removeAccount = (id: string, name: string) => {
     const target = accounts.find((a) => a.id === id);
     const adminCount = accounts.filter((a) => a.role === "Admin" && !a.deleted).length;
 
@@ -67,42 +93,52 @@ export default function HeadAdminPage() {
     }
 
     if (confirm(`ย้ายบัญชี "${name}" ไปถังขยะ?\nสามารถกู้คืนได้ภายหลัง`)) {
-      setAccounts(accounts.map((a) => (a.id === id ? { ...a, deleted: true } : a)));
+      setAccountTrashed(id, true);
+      refresh();
     }
   };
 
-  const restoreAccount = (id: number) =>
-    setAccounts(accounts.map((a) => (a.id === id ? { ...a, deleted: false } : a)));
+  const restoreAccount = (id: string) => {
+    setAccountTrashed(id, false);
+    refresh();
+  };
 
-  const purgeAccount = (id: number, name: string) => {
+  const purgeAccount = (id: string, name: string) => {
     if (confirm(`ลบบัญชี "${name}" ถาวร?\nการลบย้อนกลับไม่ได้`)) {
-      setAccounts(accounts.filter((a) => a.id !== id));
+      purgeFromAuth(id);
+      refresh();
     }
+  };
+
+  const closeAdd = () => {
+    setNewName("");
+    setNewEmail("");
+    setNewPassword("");
+    setNewRole("Staff");
+    setShowAdd(false);
   };
 
   const addAccount = () => {
-    if (!newName.trim()) {
-      alert("กรุณาใส่ชื่อบัญชี");
-      return;
+    try {
+      createAccount({
+        name: newName,
+        email: newEmail,
+        password: newPassword,
+        role: newRole.toLowerCase() as "admin" | "staff" | "vendor",
+      });
+      refresh();
+      closeAdd();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "เพิ่มบัญชีไม่สำเร็จ");
     }
-    const colors: Record<Role, string> = {
-      Admin: "bg-blue-500",
-      Staff: "bg-teal-600",
-      Vendor: "bg-orange-400",
-    };
-    setAccounts([
-      ...accounts,
-      {
-        id: Date.now(),
-        name: newName.trim(),
-        role: newRole,
-        active: true,
-        color: colors[newRole],
-      },
-    ]);
-    setNewName("");
-    setNewRole("Staff");
-    setShowAdd(false);
+  };
+
+  // ออกจากระบบ → กลับหน้า login หลัก
+  const handleLogout = () => {
+    if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
+      logout();
+      router.replace("/");
+    }
   };
 
   const tabs: Filter[] = ["ทั้งหมด", "Admin", "Staff", "Vendor", "ระงับ", "ถังขยะ"];
@@ -119,7 +155,7 @@ export default function HeadAdminPage() {
   };
 
   const filtered = accounts.filter((a) => {
-    if (filter === "ถังขยะ") return !!a.deleted && a.name.includes(search);
+    if (filter === "ถังขยะ") return a.deleted && a.name.includes(search);
     if (a.deleted) return false;
     const matchFilter =
       filter === "ทั้งหมด" ||
@@ -137,9 +173,18 @@ export default function HeadAdminPage() {
         <div className="w-full max-w-md mx-auto">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-lg font-bold text-gray-800">จัดการบัญชี</h1>
-            <span className="bg-[#B86BA6] text-white text-xs font-semibold px-3 py-1 rounded-full">
-              Head Admin
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="bg-[#B86BA6] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                Head Admin
+              </span>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 text-xs font-semibold text-red-500 border border-red-200 bg-white px-3 py-1 rounded-full"
+              >
+                <i className="bi bi-box-arrow-right" />
+                ออกจากระบบ
+              </button>
+            </div>
           </div>
 
           <input
@@ -181,8 +226,8 @@ export default function HeadAdminPage() {
                   <div className={`w-10 h-10 rounded-full ${a.color} flex-shrink-0`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-800 truncate">{a.name}</p>
-                    <p className="text-[11px] text-gray-500">
-                      {a.role}
+                    <p className="text-[11px] text-gray-500 truncate">
+                      {a.role} · {a.email}
                       {!a.active && !inTrash && " · ระงับการใช้งาน"}
                     </p>
                   </div>
@@ -269,6 +314,24 @@ export default function HeadAdminPage() {
               className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
             />
 
+            <label className="block text-xs font-semibold text-gray-700 mb-1">อีเมล (ใช้ login)</label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="เช่น staff3@test.com"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+            />
+
+            <label className="block text-xs font-semibold text-gray-700 mb-1">รหัสผ่าน</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="อย่างน้อย 6 ตัวอักษร"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+            />
+
             <label className="block text-xs font-semibold text-gray-700 mb-1">ประเภท</label>
             <div className="grid grid-cols-3 gap-2 mb-4">
               {(["Admin", "Staff", "Vendor"] as Role[]).map((r) => (
@@ -288,7 +351,7 @@ export default function HeadAdminPage() {
 
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => setShowAdd(false)}
+                onClick={closeAdd}
                 className="py-3 rounded-xl text-sm font-semibold border-2 border-[#B86BA6] text-[#B86BA6]"
               >
                 ยกเลิก
@@ -306,15 +369,15 @@ export default function HeadAdminPage() {
 
       <nav className="bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around">
         <Link href="/head-admin/report" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">📊</span>
+          <i className="bi bi-bar-chart-fill text-2xl leading-none" />
           <span className="text-[10px] mt-0.5">รายงาน</span>
         </Link>
         <Link href="/head-admin" className="flex flex-col items-center text-[#9E4B8E] py-1">
-          <span className="text-xl">👥</span>
+          <i className="bi bi-people-fill text-2xl leading-none" />
           <span className="text-[10px] mt-0.5 font-semibold">บัญชี</span>
         </Link>
         <Link href="/head-admin/audit" className="flex flex-col items-center text-gray-400 py-1">
-          <span className="text-xl">📋</span>
+          <i className="bi bi-journal-text text-2xl leading-none" />
           <span className="text-[10px] mt-0.5">Audit Log</span>
         </Link>
       </nav>

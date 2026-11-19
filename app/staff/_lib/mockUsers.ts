@@ -39,23 +39,23 @@ const seed: Customer[] = [
 // ข้อมูลอีเวนต์ (เปลี่ยนแปลงโดย Admin — Staff อ่านอย่างเดียว)
 // ไม่จำกัดจำนวนคน — ไม่มีฟิลด์ total อีกต่อไป ยอดทั้งหมดนับจากผู้ลงทะเบียนจริง
 export const event = {
-  name: "Reunion Class of 20XX",
-  venue: "Impact Arena, เมืองทองธานี",
-  dateLabel: "16 พ.ย.",
-  timeLabel: "15:00-22:00",
+  name: "งานเลี้ยงรุ่น SPU 2027",
+  venue: "อาคารเฉลิมพระเกียรติ 50 ปี มหาวิทยาลัยศรีปทุม",
+  dateLabel: "20 ธ.ค.",
+  timeLabel: "18:00-22:00",
   shift: "ประรุ่น 2",
   onDuty: true,
 };
 
 // ข้อมูลโปรไฟล์ Staff ที่ล็อกอินอยู่ (เปลี่ยนแปลงโดยระบบแอดมิน)
 export const staffProfile = {
-  initials: "ลท",
+  initials: "ลล",
   name: "ลลิตภัทร กันทา",
   role: "Staff — ประจำจุดเช็คอิน",
   employeeId: "ST-00142",
   phone: "093-913-4715",
   email: "stafflemon@test.com",
-  shift: "15:00-22:00",
+  shift: "ประรุ่น 2 · 18:00-22:00",
 };
 
 // สีพื้นของวงกลมตัวย่อ สลับให้ไม่ซ้ำกัน
@@ -90,9 +90,8 @@ export function useCustomers() {
   }, []);
 
   const update = useCallback((fn: (prev: Customer[]) => Customer[]) => {
-    setList(() => {
-      // อ่านจาก storage ล่าสุดเสมอ — กันเขียนทับบัตรที่ user เพิ่งซื้อหลังเปิดหน้านี้
-      const next = fn(load());
+    setList((prev) => {
+      const next = fn(prev ?? load());
       save(next);
       return next;
     });
@@ -101,9 +100,7 @@ export function useCustomers() {
   const find = useCallback(
     (id: string) => {
       const needle = id.trim().toUpperCase().replace(/^#/, "");
-      const match = (c: Customer) => c.id.toUpperCase() === needle;
-      // ไม่เจอใน state → อ่าน storage ใหม่ (บัตรที่ซื้อหลังเปิดหน้า staff)
-      return list?.find(match) ?? (list ? load().find(match) ?? null : null);
+      return list?.find((c) => c.id.toUpperCase() === needle) ?? null;
     },
     [list]
   );
@@ -139,31 +136,4 @@ export function useCustomers() {
   );
 
   return { list: list ?? [], loaded: list !== null, find, checkIn, addPending };
-}
-
-// ===== ใช้จากฝั่ง user (นอก React hook) =====
-
-// อ่านผู้เข้าร่วมตามเลขตั๋ว — ใช้แสดงสถานะเช็คอินในหน้า "บัตรของฉัน"
-export function getCustomer(id: string): Customer | null {
-  return load().find((c) => c.id === id) ?? null;
-}
-
-// ออกบัตรใหม่หลัง user ชำระเงิน → staff สแกนเลขตั๋วนี้ได้ทันที
-export function addCustomer(input: { name: string; tickets: number; batch?: string }): Customer {
-  const list = load();
-  const maxId = list.reduce((m, c) => Math.max(m, parseInt(c.id, 10) || 0), 0);
-  const name = input.name.trim() || "ผู้เข้าร่วม";
-  const customer: Customer = {
-    id: String(maxId + 1).padStart(5, "0"),
-    initials: name.replace(/\s+/g, "").slice(0, 2),
-    name,
-    kind: "ทั่วไป",
-    batch: input.batch ?? "20XX",
-    tickets: input.tickets,
-    token: 0,
-    pending: 0,
-    checkedIn: false,
-  };
-  save([customer, ...list]);
-  return customer;
 }

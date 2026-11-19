@@ -18,11 +18,10 @@ function thaiTimeLabel(d: Date) {
 }
 function paymentChannelLabel(method: string) {
   switch (method) {
-    case "promptpay": return "พร้อมเพย์";
     case "cash":      return "เงินสด";
     case "qr":        return "QR พร้อมเพย์";
-    case "credit":
-    default:          return "บัตรเครดิต";
+    case "promptpay":
+    default:          return "พร้อมเพย์";
   }
 }
 
@@ -56,8 +55,7 @@ function TopupSuccessContent() {
 
   const id = params.get("id") ?? "";
   const amount = Number(params.get("amount") ?? "0") || 0;
-  const method = params.get("method") ?? "credit";
-  const last4 = params.get("last4") ?? "1234";
+  const method = params.get("method") ?? "promptpay";
 
   const { find, loaded } = useCustomers();
   const user = find(id);
@@ -76,9 +74,7 @@ function TopupSuccessContent() {
 
   if (!loaded) return null;
 
-  const channelText = `${paymentChannelLabel(method)}${
-    method === "credit" || !method ? ` •••• ${last4}` : ""
-  }`;
+  const channelText = paymentChannelLabel(method);
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[390px] flex-col bg-[#fdf6ee] px-4 pb-5 pt-5">
@@ -228,6 +224,12 @@ function TopupSuccessContent() {
             <path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4" />
           </svg>
           เติม TOKEN ให้คนถัดไป
+        </button>
+        <button
+          onClick={() => router.push("/staff/topup-history")}
+          className="text-center text-xs font-semibold text-[#8a8580]"
+        >
+          ดูประวัติการเติม TOKEN →
         </button>
       </div>
     </main>

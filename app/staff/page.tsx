@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavMain from "./_components/BottomNavMain";
 import { avatarPalette, event, staffProfile, useCustomers } from "./_lib/mockUsers";
@@ -24,10 +25,23 @@ export default function StaffHomePage() {
   const router = useRouter();
   const { list } = useCustomers();
 
+  // อัปเดตเวลาและคำทักทายตามเวลาจริง (เบา ๆ ทุก 60 วินาที)
+  const [now, setNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
   const recent = list
     .filter((c) => c.checkedIn && c.checkedInAt)
     .sort((a, b) => (a.checkedInAt! < b.checkedInAt! ? 1 : -1))
     .slice(0, 3);
+
+  const timeNow = now.toLocaleTimeString("th-TH", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[390px] flex-col bg-[#fdf6ee]">
@@ -50,7 +64,13 @@ export default function StaffHomePage() {
 
       {/* Event card */}
       <section className="mx-4 mt-3 overflow-hidden rounded-[22px] bg-gradient-to-br from-[#f0705a] to-[#e85a40] p-4 text-white shadow-[0_12px_28px_-18px_rgba(240,112,90,0.9)]">
-        <h2 className="text-[22px] font-bold leading-snug">{event.name}</h2>
+        <div className="flex items-start justify-end gap-2">
+          <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] text-white/95 backdrop-blur">
+            {timeNow} น.
+          </span>
+        </div>
+
+        <h2 className="mt-2 text-[22px] font-bold leading-snug">{event.name}</h2>
         <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white/90">
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-2">
             <path d="M12 21s-7-6.2-7-11a7 7 0 1114 0c0 4.8-7 11-7 11z" />
@@ -65,6 +85,7 @@ export default function StaffHomePage() {
           </svg>
           {event.dateLabel} · {event.timeLabel} น.
         </p>
+
       </section>
 
       {/* Big scan button */}

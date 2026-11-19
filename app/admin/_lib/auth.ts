@@ -4,6 +4,8 @@
  */
 
 const SESSION_KEY = 'next-admin:session';
+const MAIN_SESSION_KEY = 'p31-current-user'; // session ของหน้า login หลัก (/)
+const ADMIN_ROLES = ['admin']; // head-admin มีหน้าหลักแยกที่ /head-admin
 
 export interface AdminSession {
   email: string;
@@ -16,7 +18,12 @@ export function getSession(): AdminSession | null {
   if (!isBrowser()) return null;
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as AdminSession) : null;
+    if (raw) return JSON.parse(raw) as AdminSession;
+    // login จากหน้าหลัก (/) ด้วยบัญชี admin → เข้าส่วน admin ได้เลย
+    const main = localStorage.getItem(MAIN_SESSION_KEY);
+    if (!main) return null;
+    const u = JSON.parse(main) as { email: string; role: string };
+    return ADMIN_ROLES.includes(u.role) ? { email: u.email, loggedInAt: new Date().toISOString() } : null;
   } catch {
     return null;
   }
@@ -38,6 +45,7 @@ export function clearSession() {
   if (!isBrowser()) return;
   try {
     sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(MAIN_SESSION_KEY); // ออกจากระบบหลักด้วย
   } catch {
     /* ignore */
   }

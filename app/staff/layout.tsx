@@ -25,7 +25,8 @@ export default function StaffLayout({ children }: { children: ReactNode }) {
     const isPublic = PUBLIC_PATHS.has(pathname);
     const session = loadSession();
     if (!session && !isPublic) {
-      router.replace("/"); // ยังไม่ login → กลับหน้า login หลัก
+      const next = encodeURIComponent(pathname);
+      router.replace(`/staff/login?next=${next}`);
       return;
     }
     if (session && isPublic) {

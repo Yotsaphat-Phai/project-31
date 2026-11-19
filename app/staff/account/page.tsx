@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavMain from "../_components/BottomNavMain";
-import { useStaffProfile } from "../_lib/mockUsers";
+import { staffProfile } from "../_lib/mockUsers";
 import { signOut } from "../_lib/auth";
 
 type RowProps = {
@@ -53,8 +54,16 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 }
 
 export default function StaffAccountPage() {
-  const staffProfile = useStaffProfile();
   const router = useRouter();
+
+  // Toast ง่าย ๆ สำหรับฟีเจอร์ที่ยังไม่พร้อม — ให้ทุกปุ่มมี feedback จริง
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
+  const soon = (name: string) => setToast(`"${name}" กำลังพัฒนา`);
 
   const openMail = () =>
     typeof window !== "undefined" && window.location.assign(`mailto:${staffProfile.email}`);
@@ -118,25 +127,6 @@ export default function StaffAccountPage() {
         </section>
       </div>
 
-      {/* Activity */}
-      <div className="mx-4 mt-4">
-        <SectionHeader>กิจกรรม</SectionHeader>
-        <section className="overflow-hidden rounded-[22px] border border-[#f3e3d3] bg-white">
-          <Row
-            icon={
-              <>
-                <ellipse cx="12" cy="6" rx="7" ry="2.5" />
-                <path d="M5 6v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6" />
-                <path d="M5 12v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6" />
-              </>
-            }
-            label="ประวัติการเติม TOKEN"
-            onClick={() => router.push("/staff/topup-history")}
-            last
-          />
-        </section>
-      </div>
-
       {/* Settings */}
       <div className="mx-4 mt-4">
         <SectionHeader>ตั้งค่า</SectionHeader>
@@ -149,7 +139,17 @@ export default function StaffAccountPage() {
               </>
             }
             label="การแจ้งเตือน"
-            onClick={() => router.push("/staff/notifications")}
+            onClick={() => soon("การแจ้งเตือน")}
+          />
+          <Row
+            icon={
+              <>
+                <rect x="4" y="4" width="16" height="16" rx="3" />
+                <path d="M8 9h8M8 13h8M8 17h5" />
+              </>
+            }
+            label="ตั้งค่าแอป"
+            onClick={() => soon("ตั้งค่าแอป")}
           />
           <Row
             icon={
@@ -159,7 +159,7 @@ export default function StaffAccountPage() {
               </>
             }
             label="ช่วยเหลือ"
-            onClick={() => router.push("/staff/help")}
+            onClick={() => soon("ช่วยเหลือ")}
             last
           />
         </section>
@@ -181,7 +181,7 @@ export default function StaffAccountPage() {
             onClick={() => {
               if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
                 signOut();
-                router.replace("/");
+                router.replace("/staff/login");
               }
             }}
           />
@@ -190,6 +190,16 @@ export default function StaffAccountPage() {
           Staff App · เวอร์ชัน 1.0.0
         </p>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          role="status"
+          className="pointer-events-none fixed bottom-20 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[#1f2a2e] px-4 py-2 text-xs font-medium text-white shadow-lg"
+        >
+          {toast}
+        </div>
+      )}
 
       <BottomNavMain active="account" />
     </main>

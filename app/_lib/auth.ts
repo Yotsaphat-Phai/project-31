@@ -5,6 +5,7 @@
 // role อื่น (staff / vendor / admin / head-admin) login ได้อย่างเดียว ไม่มีการสมัคร
 // ภายหลังถ้ามี backend จริง เปลี่ยนแค่ไฟล์นี้ไฟล์เดียว
 
+import { logAudit, roleLabel } from "./audit";
 import { mockAccounts, ROLE_HOME, type Account, type Role } from "./mock";
 
 const REGISTERED_KEY = "p31-registered-users";
@@ -85,7 +86,16 @@ export function login(emailOrPhone: string, password: string): SessionUser {
   if (!account || account.password !== password) {
     throw new Error("อีเมล/เบอร์โทร หรือรหัสผ่านไม่ถูกต้อง");
   }
-  if (!account.active || getTrashIds().includes(account.id)) {
+  const blocked = !account.active || getTrashIds().includes(account.id);
+  // บันทึกลง Audit Log ทั้งเข้าได้และถูกปฏิเสธ (บัญชีถูกระงับ)
+  logAudit({
+    kind: blocked ? "login_blocked" : "login",
+    role: roleLabel(account.role),
+    user: account.name,
+    email: account.email,
+    by: account.name,
+  });
+  if (blocked) {
     throw new Error("บัญชีนี้ถูกระงับ กรุณาติดต่อ Admin");
   }
   const user = toSession(account);

@@ -12,6 +12,7 @@ import {
   purgeAccount as purgeFromAuth,
   createAccount,
 } from "../_lib/auth";
+import { logAudit } from "../_lib/audit";
 
 type Role = "Admin" | "Staff" | "Vendor";
 type Filter = "ทั้งหมด" | Role | "ระงับ" | "ถังขยะ";
@@ -79,6 +80,12 @@ export default function HeadAdminPage() {
     const target = accounts.find((a) => a.id === id);
     if (!target) return;
     setAccountActive(id, !target.active);
+    logAudit({
+      kind: target.active ? "suspend" : "unsuspend",
+      role: target.role,
+      user: target.name,
+      email: target.email,
+    });
     refresh();
   };
 
@@ -94,18 +101,23 @@ export default function HeadAdminPage() {
 
     if (confirm(`ย้ายบัญชี "${name}" ไปถังขยะ?\nสามารถกู้คืนได้ภายหลัง`)) {
       setAccountTrashed(id, true);
+      if (target) logAudit({ kind: "trash", role: target.role, user: target.name, email: target.email });
       refresh();
     }
   };
 
   const restoreAccount = (id: string) => {
+    const target = accounts.find((a) => a.id === id);
     setAccountTrashed(id, false);
+    if (target) logAudit({ kind: "restore", role: target.role, user: target.name, email: target.email });
     refresh();
   };
 
   const purgeAccount = (id: string, name: string) => {
     if (confirm(`ลบบัญชี "${name}" ถาวร?\nการลบย้อนกลับไม่ได้`)) {
+      const target = accounts.find((a) => a.id === id);
       purgeFromAuth(id);
+      if (target) logAudit({ kind: "purge", role: target.role, user: target.name, email: target.email });
       refresh();
     }
   };
@@ -120,12 +132,13 @@ export default function HeadAdminPage() {
 
   const addAccount = () => {
     try {
-      createAccount({
+      const created = createAccount({
         name: newName,
         email: newEmail,
         password: newPassword,
         role: newRole.toLowerCase() as "admin" | "staff" | "vendor",
       });
+      logAudit({ kind: "add", role: newRole, user: created.name, email: created.email });
       refresh();
       closeAdd();
       alert(`เพิ่มบัญชีแล้ว\nใช้อีเมล ${newEmail.trim().toLowerCase()} และรหัสผ่านที่ตั้งไว้ เข้าสู่ระบบได้เลย`);

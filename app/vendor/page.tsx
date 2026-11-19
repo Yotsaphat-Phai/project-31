@@ -10,6 +10,7 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { getCurrentUser } from "../_lib/auth";
 import { shops, type Shop } from "../_lib/mock";
+import { getShopTx, isToday, timeLabel } from "../_lib/vendorTx";
 
 const noopSubscribe = () => () => {};
 
@@ -23,25 +24,15 @@ function useMyShop(): Shop {
   return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
 }
 
-// ===== Mock: ยอดรวมวันนี้ + รายการล่าสุด (ภายหลังย้ายไป mock.ts ได้) =====
-const TODAY_TOTAL = 4250;
-
-type RecentTx = {
-  id: string;
-  customerName: string;
-  amount: number;
-  time: string;
-  status: "success";
-};
-
-const RECENT_TX: RecentTx[] = [
-  { id: "T001", customerName: "PIZZARTH K.", amount: 350, time: "09:50", status: "success" },
-];
-
+// ยอดรวมวันนี้ + รายการล่าสุด: อ่านจากรายการขายจริงของร้าน (app/_lib/vendorTx.ts)
 const QUICK_AMOUNTS = [50, 100, 200, 500] as const;
 
 export default function VendorHomePage() {
   const shop = useMyShop();
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const txs = mounted ? getShopTx(shop.code) : [];
+  const todayTotal = txs.filter((t) => isToday(t.at)).reduce((sum, t) => sum + t.amount, 0);
+  const recent = txs.slice(0, 5);
 
   return (
     <div className="min-h-screen w-screen bg-gray-200 flex items-center justify-center p-4">
@@ -61,7 +52,7 @@ export default function VendorHomePage() {
             <p className="text-sm text-gray-500">ยอดรวมวันนี้</p>
             <p className="mt-1">
               <span className="text-3xl font-extrabold text-gray-900">
-                {TODAY_TOTAL.toLocaleString()}
+                {todayTotal.toLocaleString()}
               </span>{" "}
               <span className="text-sm font-semibold text-[#C8A057]">TOKEN</span>
             </p>
@@ -102,12 +93,12 @@ export default function VendorHomePage() {
           </div>
 
           <div className="bg-white rounded-2xl divide-y divide-gray-100 shadow-sm">
-            {RECENT_TX.length === 0 ? (
+            {recent.length === 0 ? (
               <p className="text-center text-sm text-gray-400 py-6">
                 ยังไม่มีรายการ
               </p>
             ) : (
-              RECENT_TX.map((tx) => (
+              recent.map((tx) => (
                 <div
                   key={tx.id}
                   className="flex items-center justify-between px-4 py-3"
@@ -117,7 +108,7 @@ export default function VendorHomePage() {
                       {tx.customerName}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {tx.time} · รับชำระสำเร็จ
+                      {timeLabel(tx.at)} · รับชำระสำเร็จ
                     </p>
                   </div>
                   <p className="font-bold text-emerald-600">

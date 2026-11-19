@@ -1,6 +1,10 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
+import { getCurrentUser } from "../../_lib/auth";
+import { shops } from "../../_lib/mock";
+import { dateLabel, getShopTx, timeLabel } from "../../_lib/vendorTx";
 
 // ===== Icons =====
 function ClipboardIcon({ className = "" }: { className?: string }) {
@@ -45,10 +49,25 @@ type Transaction = {
   status: "success" | "refunded";
 };
 
-// ยังไม่มีข้อมูล — ภายหลังดึงรายการจริงจากระบบมาใส่ตรงนี้
-const transactions: Transaction[] = [];
+const noopSubscribe = () => () => {};
+
+// รายการจริงของร้านที่ login อยู่ (บันทึกตอนสแกนตัด TOKEN)
+function loadTransactions(): Transaction[] {
+  const vendorId = getCurrentUser()?.id ?? "";
+  const shop = shops.find((s) => s.vendorId === vendorId) ?? shops[0];
+  return getShopTx(shop.code).map((t) => ({
+    id: t.id,
+    customerName: `${t.customerName} · #${t.customerId}`,
+    amount: t.amount,
+    time: timeLabel(t.at),
+    date: dateLabel(t.at),
+    status: "success",
+  }));
+}
 
 export default function VendorHistoryPage() {
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const transactions = mounted ? loadTransactions() : [];
   const totalToken = transactions
     .filter((t) => t.status === "success")
     .reduce((sum, t) => sum + t.amount, 0);

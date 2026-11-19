@@ -90,11 +90,11 @@ export function useCustomers() {
   }, []);
 
   const update = useCallback((fn: (prev: Customer[]) => Customer[]) => {
-    setList((prev) => {
-      const next = fn(prev ?? load());
-      save(next);
-      return next;
-    });
+    // อ่านจาก storage ล่าสุดเสมอ — กันเขียนทับบัตรที่ user เพิ่งซื้อหลังเปิดหน้านี้
+    // คำนวณนอก setList เพื่อไม่ให้ทำซ้ำ 2 รอบใน dev (StrictMode)
+    const next = fn(load());
+    save(next);
+    setList(next);
   }, []);
 
   const find = useCallback(
@@ -135,5 +135,56 @@ export function useCustomers() {
     [update]
   );
 
-  return { list: list ?? [], loaded: list !== null, find, checkIn, addPending };
+  // เติม (delta > 0) หรือหัก (delta < 0) TOKEN ทันที + บันทึกประวัติ — คืน false ถ้ายอดไม่พอ
+  const adjustToken = useCallback(
+    (id: string, delta: number, note: string) => {
+      const cur = load().find((c) => c.id === id);
+      if (!cur || cur.token + delta < 0) return false;
+      update((l) => l.map((c) => (c.id === id ? { ...c, token: c.token + delta } : c)));
+      logToken({ customerId: id, delta, note, at: new Date().toISOString() });
+      return true;
+    },
+    [update]
+  );
+
+  return { list: list ?? [], loaded: list !== null, find, checkIn, addPending, adjustToken };
+}
+
+// ===== ใช้นอก React hook: ร้านค้าตัด TOKEN จากเลข QR ของ user =====
+export function chargeToken(
+  id: string,
+  amount: number,
+  note: string
+): { ok: true; customer: Customer } | { ok: false; error: string } {
+  const needle = id.trim().replace(/^#/, "");
+  const list = load();
+  const cur = list.find((c) => c.id === needle);
+  if (!cur) return { ok: false, error: "ไม่พบผู้ใช้จาก QR นี้" };
+  if (amount <= 0) return { ok: false, error: "กรุณากรอกยอดชำระ" };
+  if (cur.token < amount) return { ok: false, error: `TOKEN ไม่พอ (มี ${cur.token.toLocaleString()})` };
+  const customer = { ...cur, token: cur.token - amount };
+  save(list.map((c) => (c.id === needle ? customer : c)));
+  logToken({ customerId: needle, delta: -amount, note, at: new Date().toISOString() });
+  return { ok: true, customer };
+}
+
+// ===== ประวัติ TOKEN (เติม/หัก) =====
+const TOKEN_LOG_KEY = "p31-token-log";
+
+export type TokenLog = { customerId: string; delta: number; note: string; at: string };
+
+function logToken(entry: TokenLog) {
+  try {
+    const list: TokenLog[] = JSON.parse(localStorage.getItem(TOKEN_LOG_KEY) ?? "[]");
+    localStorage.setItem(TOKEN_LOG_KEY, JSON.stringify([entry, ...list]));
+  } catch {}
+}
+
+export function getTokenLog(customerId: string): TokenLog[] {
+  try {
+    const list: TokenLog[] = JSON.parse(localStorage.getItem(TOKEN_LOG_KEY) ?? "[]");
+    return list.filter((l) => l.customerId === customerId);
+  } catch {
+    return [];
+  }
 }

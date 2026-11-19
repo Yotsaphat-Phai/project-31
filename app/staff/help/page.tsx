@@ -123,10 +123,10 @@ export default function HelpPage() {
           />
           <QuickRow
             label="ส่งอีเมลหาทีมแอดมิน"
-            hint="support@spu-reunion.test"
+            hint="admin@test.com"
             onClick={() =>
               typeof window !== "undefined" &&
-              window.location.assign("mailto:support@spu-reunion.test")
+              window.location.assign("mailto:admin@test.com")
             }
             last
             icon={

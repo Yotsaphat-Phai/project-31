@@ -122,16 +122,6 @@ function ScanSuccessContent() {
 
         <ul className="divide-y divide-[#f5ead9] px-4">
           <InfoRow
-            label="วันที่จัดงาน"
-            value={dateLabel}
-            icon={
-              <>
-                <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
-                <path d="M3.5 10h17M8 3v4M16 3v4" />
-              </>
-            }
-          />
-          <InfoRow
             label="เวลา"
             value={`${event.timeLabel} น.`}
             icon={
@@ -166,18 +156,6 @@ function ScanSuccessContent() {
           <p className="text-[11px] text-neutral-500">หมายเลขตั๋ว</p>
           <p className="truncate text-sm font-bold text-[#1f2a2e]">{ticketRef}</p>
         </div>
-        <button
-          onClick={shareTicket}
-          className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#f3a9a0] px-3.5 py-1.5 text-[11px] font-semibold text-white"
-        >
-          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-2">
-            <circle cx="6" cy="12" r="2.2" />
-            <circle cx="17" cy="6" r="2.2" />
-            <circle cx="17" cy="18" r="2.2" />
-            <path d="M8 11l7-4M8 13l7 4" />
-          </svg>
-          {copied ? "คัดลอกแล้ว" : "แชร์ตั๋ว"}
-        </button>
       </section>
 
       {/* Home button */}

@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import AdminHeader from '../_components/AdminHeader';
 import Avatar from '../_components/Avatar';
 import Toggle from '../_components/Toggle';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Banknote } from 'lucide-react';
 import AddStoreSheet from '../_sheets/AddStoreSheet';
 import DeleteStoreSheet from '../_sheets/DeleteStoreSheet';
 import type { Store } from '../_lib/types';
 import { useAdminStore } from '../_lib/AdminStore';
+import { WITHDRAWAL_SEED } from '../_lib/withdrawalSeed';
 import { fmt } from '../_lib/utils';
 
 /** 4) ร้านค้า (+ แผงเพิ่มร้านค้า) */
@@ -16,6 +18,7 @@ export default function Stores() {
   const { stores, setStores } = useAdminStore();
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<Store | null>(null);
+  const pendingWithdraw = WITHDRAWAL_SEED.filter((w) => w.status === 'pending').length;
 
   const toggle = (id: string, open: boolean) =>
     setStores((p) => p.map((s) => (s.id === id ? { ...s, open } : s)));
@@ -38,6 +41,25 @@ export default function Stores() {
     <>
       <AdminHeader title="ร้านค้า" />
       <main className="admin-main">
+        <Link
+          href="/admin/withdrawals"
+          className="card row"
+          style={{ padding: 14, textDecoration: 'none', color: 'inherit', marginBottom: 14, background: pendingWithdraw > 0 ? '#FFE9BF' : '#fff', borderColor: pendingWithdraw > 0 ? '#FFE9BF' : undefined }}
+        >
+          <span className="avatar" style={{ width: 40, height: 40, borderRadius: 10, background: '#D99A1F' }}>
+            <Banknote size={18} />
+          </span>
+          <div className="grow">
+            <div className="title">คำขอถอน TOKEN</div>
+            <div className="sub">
+              {pendingWithdraw > 0 ? `${pendingWithdraw} รายการ รอแอดมินอนุมัติ` : 'ไม่มีคำขอรออนุมัติ'}
+            </div>
+          </div>
+          <span className={`status ${pendingWithdraw > 0 ? 'gold' : 'teal'}`}>
+            {pendingWithdraw > 0 ? 'จัดการ' : 'ล่าสุด'}
+          </span>
+        </Link>
+
         <div className="list">
           {stores.map((s, i) => (
             <div key={s.id} className="card row" style={{ cursor: 'default' }}>

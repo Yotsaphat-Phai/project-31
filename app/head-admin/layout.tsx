@@ -16,7 +16,7 @@ export default function HeadAdminLayout({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!allowed) router.replace("/");
+    if (!allowed) router.replace("/admin/login");
   }, [allowed, router]);
 
   if (!allowed) return null;

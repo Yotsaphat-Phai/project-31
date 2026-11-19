@@ -141,7 +141,7 @@ export default function HeadAdminPage() {
       logAudit({ kind: "add", role: newRole, user: created.name, email: created.email });
       refresh();
       closeAdd();
-      alert(`เพิ่มบัญชีแล้ว\nใช้อีเมล ${newEmail.trim().toLowerCase()} และรหัสผ่านที่ตั้งไว้ เข้าสู่ระบบได้เลย`);
+      alert(`เพิ่มบัญชีแล้ว\nใช้อีเมล ${newEmail.trim().toLowerCase()} และรหัสผ่านที่ตั้งไว้ เข้าสู่ระบบได้${newRole === "Admin" ? "ที่หน้า /admin/login (OTP 123456)" : "ที่หน้าแรก"}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "เพิ่มบัญชีไม่สำเร็จ");
     }
@@ -151,7 +151,7 @@ export default function HeadAdminPage() {
   const handleLogout = () => {
     if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
       logout();
-      router.replace("/");
+      router.replace("/admin/login");
     }
   };
 

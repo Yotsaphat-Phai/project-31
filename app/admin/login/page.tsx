@@ -5,11 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { setSession } from '../_lib/auth';
-import { getAccounts, login } from '../../_lib/auth';
+import { loginAdminArea } from '../../_lib/auth';
 
-// บัญชีที่เข้าได้: role admin และ head-admin จาก mock กลาง (app/_lib/mock.ts)
-// เช่น admin@test.com / 123456 , head@test.com / 123456 — OTP เดโม่ใช้ 123456
-const ADMIN_ROLES = ['admin', 'head-admin'];
+// OTP ของเดโม่ — บัญชี Admin / Head Admin ตรวจกับระบบ login กลาง (app/_lib/auth.ts)
+// จึงใช้ได้ทั้ง admin@test.com, head@test.com และบัญชี Admin ที่ head-admin เพิ่มเอง
 const ADMIN_OTP = '123456';
 
 /** หน้าเข้าสู่ระบบ Admin — อีเมล + รหัสผ่าน + OTP 6 หลัก */
@@ -54,35 +53,23 @@ export default function AdminLogin() {
     if (!canSubmit) return;
 
     const otpCode = otp.join('');
-    const account = getAccounts().find(
-      (a) => a.email.toLowerCase() === email.trim().toLowerCase() && ADMIN_ROLES.includes(a.role)
-    );
-    if (!account) {
-      setError('อีเมลผู้ดูแลไม่ถูกต้อง');
-      return;
-    }
-    if (!account.active) {
-      setError('บัญชีนี้ถูกระงับ');
-      return;
-    }
-    if (password !== account.password) {
-      setError('รหัสผ่านไม่ถูกต้อง');
-      return;
-    }
     if (otpCode !== ADMIN_OTP) {
       setError('รหัส OTP ไม่ถูกต้อง');
       return;
     }
 
-    setError(null);
-    // บันทึก session ของระบบหลักด้วย (หน้า /head-admin เช็กจากตรงนี้)
-    login(account.email, password);
-    if (account.role === 'head-admin') {
-      router.replace('/head-admin'); // head-admin → หน้าหลักของ head-admin
-      return;
+    try {
+      const user = loginAdminArea(email, password);
+      setError(null);
+      if (user.role === 'head-admin') {
+        router.replace('/head-admin');
+        return;
+      }
+      setSession(user.email);
+      router.replace('/admin');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'เข้าสู่ระบบไม่สำเร็จ');
     }
-    setSession(account.email.toLowerCase());
-    router.replace('/admin');
   };
 
   return (

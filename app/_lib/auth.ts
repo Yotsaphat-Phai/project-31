@@ -78,13 +78,30 @@ export function getAccounts(): Account[] {
 }
 
 // login ด้วยอีเมลหรือเบอร์โทร — ผิดจะ throw Error พร้อมข้อความภาษาไทย
+// Admin / Head Admin เข้าที่หน้านี้ไม่ได้ ต้องเข้าที่ /admin/login (loginAdminArea)
 export function login(emailOrPhone: string, password: string): SessionUser {
+  return doLogin(emailOrPhone, password, false);
+}
+
+// ใช้ในหน้า /admin/login เท่านั้น — รับเฉพาะบัญชี admin และ head-admin
+export function loginAdminArea(email: string, password: string): SessionUser {
+  return doLogin(email, password, true);
+}
+
+function doLogin(emailOrPhone: string, password: string, adminArea: boolean): SessionUser {
   const key = emailOrPhone.trim().toLowerCase();
   const account = getAccounts().find(
     (a) => a.email.toLowerCase() === key || (a.phone !== "" && a.phone === key)
   );
   if (!account || account.password !== password) {
     throw new Error("อีเมล/เบอร์โทร หรือรหัสผ่านไม่ถูกต้อง");
+  }
+  const isAdminRole = account.role === "admin" || account.role === "head-admin";
+  if (isAdminRole && !adminArea) {
+    throw new Error("Admin / Head Admin กรุณาเข้าสู่ระบบที่หน้า Admin (/admin/login)");
+  }
+  if (!isAdminRole && adminArea) {
+    throw new Error("บัญชีนี้ไม่ใช่ Admin หรือ Head Admin");
   }
   const blocked = !account.active || getTrashIds().includes(account.id);
   // บันทึกลง Audit Log ทั้งเข้าได้และถูกปฏิเสธ (บัญชีถูกระงับ)

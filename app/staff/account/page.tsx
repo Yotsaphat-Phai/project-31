@@ -180,7 +180,7 @@ export default function StaffAccountPage() {
             onClick={() => {
               if (confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
                 signOut();
-                router.replace("/staff/login");
+                router.replace("/");
               }
             }}
           />

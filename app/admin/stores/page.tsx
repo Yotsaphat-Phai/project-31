@@ -10,15 +10,14 @@ import AddStoreSheet from '../_sheets/AddStoreSheet';
 import DeleteStoreSheet from '../_sheets/DeleteStoreSheet';
 import type { Store } from '../_lib/types';
 import { useAdminStore } from '../_lib/AdminStore';
-import { WITHDRAWAL_SEED } from '../_lib/withdrawalSeed';
 import { fmt } from '../_lib/utils';
 
 /** 4) ร้านค้า (+ แผงเพิ่มร้านค้า) */
 export default function Stores() {
-  const { stores, setStores } = useAdminStore();
+  const { stores, setStores, withdrawals } = useAdminStore();
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<Store | null>(null);
-  const pendingWithdraw = WITHDRAWAL_SEED.filter((w) => w.status === 'pending').length;
+  const pendingWithdraw = withdrawals.filter((w) => w.status === 'pending').length;
 
   const toggle = (id: string, open: boolean) =>
     setStores((p) => p.map((s) => (s.id === id ? { ...s, open } : s)));

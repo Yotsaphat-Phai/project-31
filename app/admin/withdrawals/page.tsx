@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import { Landmark, Coins } from 'lucide-react';
 import AdminHeader from '../_components/AdminHeader';
 import WithdrawRejectSheet from '../_sheets/WithdrawRejectSheet';
+import { useAdminStore } from '../_lib/AdminStore';
 import type { WithdrawRequest, WithdrawStatus } from '../_lib/types';
-import { WITHDRAWAL_SEED } from '../_lib/withdrawalSeed';
 import { fmt } from '../_lib/utils';
 
 const TAB_LABEL: Record<WithdrawStatus, string> = {
@@ -16,7 +16,7 @@ const TAB_LABEL: Record<WithdrawStatus, string> = {
 
 /** หน้าแอดมิน: อนุมัติการถอน TOKEN ของร้านค้า */
 export default function WithdrawalApproval() {
-  const [items, setItems] = useState<WithdrawRequest[]>(WITHDRAWAL_SEED);
+  const { withdrawals: items, setWithdrawals: setItems, setStores } = useAdminStore();
   const [tab, setTab] = useState<WithdrawStatus>('pending');
   const [rejecting, setRejecting] = useState<WithdrawRequest | null>(null);
 
@@ -31,6 +31,14 @@ export default function WithdrawalApproval() {
 
   const patch = (id: string, changes: Partial<WithdrawRequest>) =>
     setItems((prev) => prev.map((w) => (w.id === id ? { ...w, ...changes } : w)));
+
+  const approve = (w: WithdrawRequest) => {
+    // หัก TOKEN ออกจากยอดสะสมของร้านค้าตามจำนวนที่ถอน
+    setStores((prev) =>
+      prev.map((s) => (s.id === w.storeId ? { ...s, totalToken: Math.max(0, s.totalToken - w.amount) } : s))
+    );
+    patch(w.id, { status: 'approved', processedAt: now() });
+  };
 
   return (
     <>
@@ -103,10 +111,7 @@ export default function WithdrawalApproval() {
                   <button className="btn btn-sm btn-outline-coral" onClick={() => setRejecting(w)}>
                     ปฏิเสธ
                   </button>
-                  <button
-                    className="btn btn-sm btn-teal"
-                    onClick={() => patch(w.id, { status: 'approved', processedAt: now() })}
-                  >
+                  <button className="btn btn-sm btn-teal" onClick={() => approve(w)}>
                     อนุมัติการถอน
                   </button>
                 </div>

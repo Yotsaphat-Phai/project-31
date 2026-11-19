@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react';
 import AdminHeader from '../_components/AdminHeader';
 import SupportDetailSheet from '../_sheets/SupportDetailSheet';
+import { useAdminStore } from '../_lib/AdminStore';
 import type { SupportTicket, TicketStatus } from '../_lib/types';
-import { SUPPORT_SEED } from '../_lib/supportSeed';
 import { TOPIC_LABEL, TOPIC_COLOR } from '../_lib/utils';
 
 const TAB_LABEL: Record<TicketStatus, string> = {
@@ -15,7 +15,7 @@ const TAB_LABEL: Record<TicketStatus, string> = {
 
 /** หน้าแอดมิน: กล่องเรื่องแจ้งปัญหา (รับจากหน้า "ติดต่อแอดมิน") */
 export default function SupportInbox() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(SUPPORT_SEED);
+  const { tickets, setTickets } = useAdminStore();
   const [tab, setTab] = useState<TicketStatus>('open');
   const [active, setActive] = useState<SupportTicket | null>(null);
 

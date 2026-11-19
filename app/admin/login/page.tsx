@@ -4,9 +4,10 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { setSession } from '../_lib/auth';
 
 // ข้อมูลเข้าสู่ระบบของแอดมิน (เฉพาะเดโม่)
-const ADMIN_EMAIL = 'adminatom@test.com';
+const ADMIN_EMAIL = 'admin@test.com';
 const ADMIN_PASSWORD = '123456';
 const ADMIN_OTP = '123456';
 
@@ -66,7 +67,8 @@ export default function AdminLogin() {
     }
 
     setError(null);
-    router.push('/admin');
+    setSession(email.trim().toLowerCase());
+    router.replace('/admin');
   };
 
   return (
@@ -94,7 +96,7 @@ export default function AdminLogin() {
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(null); }}
-            placeholder="adminatom@test.com"
+            placeholder="name@test.com"
             autoComplete="username"
           />
         </label>

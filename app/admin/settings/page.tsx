@@ -6,6 +6,7 @@ import { LogOut } from 'lucide-react';
 import AdminHeader from '../_components/AdminHeader';
 import Toggle from '../_components/Toggle';
 import { useAdminStore } from '../_lib/AdminStore';
+import { clearSession, getSession } from '../_lib/auth';
 import type { EventConfig } from '../_lib/types';
 
 /** 6) ตั้งค่างาน */
@@ -14,6 +15,12 @@ export default function EventSettings() {
   const { event, setEvent } = useAdminStore();
   const [cfg, setCfg] = useState<EventConfig>(event);
   const [saved, setSaved] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+
+  // อ่าน session หลัง mount เพื่อไม่ให้ hydration mismatch
+  useEffect(() => {
+    setEmail(getSession()?.email ?? null);
+  }, []);
 
   // ค่าที่จำไว้โหลดเสร็จทีหลัง → ซิงก์เข้าฟอร์ม
   useEffect(() => setCfg(event), [event]);
@@ -72,10 +79,20 @@ export default function EventSettings() {
 
         <hr style={{ margin: '28px 0 16px', border: 0, borderTop: '1px solid #F0DFCF' }} />
 
+        {email && (
+          <div className="card" style={{ padding: 12, marginBottom: 12, background: '#ECEAFA', borderColor: '#ECEAFA' }}>
+            <div className="sub" style={{ fontSize: 11 }}>เข้าสู่ระบบในชื่อ</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>{email}</div>
+          </div>
+        )}
+
         <button
           className="btn btn-outline-coral"
           onClick={() => {
-            if (confirm('ต้องการออกจากระบบใช่หรือไม่?')) router.push('/admin/login');
+            if (confirm('ต้องการออกจากระบบใช่หรือไม่?')) {
+              clearSession();
+              router.replace('/admin/login');
+            }
           }}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
         >

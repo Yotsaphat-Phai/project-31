@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import AdminBottomNav from './_components/AdminBottomNav';
+import AuthGate from './_components/AuthGate';
 import { AdminStoreProvider } from './_lib/AdminStore';
 import './admin.css';
 
@@ -11,8 +12,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AdminStoreProvider>
       <div className="admin-shell">
-        <AdminBottomNav />
-        <div className="admin-content">{children}</div>
+        <AuthGate>
+          <AdminBottomNav />
+          <div className="admin-content">{children}</div>
+        </AuthGate>
       </div>
     </AdminStoreProvider>
   );

@@ -5,18 +5,16 @@ import { Settings, Users, Ticket, Coins, FileText, AlertCircle, Banknote } from 
 import AdminHeader from './_components/AdminHeader';
 import { dashboardStats } from './_lib/mockData';
 import { useAdminStore } from './_lib/AdminStore';
-import { SUPPORT_SEED } from './_lib/supportSeed';
-import { WITHDRAWAL_SEED } from './_lib/withdrawalSeed';
 import { fmt } from './_lib/utils';
 
 const BAR_COLORS = ['#F07060', '#2A9D8F', '#D99A1F', '#5E8BC9'];
 
 /** 1) Admin Dashboard (ภาพรวม) */
 export default function AdminDashboard() {
-  const { stores, slips } = useAdminStore();
+  const { stores, slips, tickets, withdrawals } = useAdminStore();
   const pendingSlips = slips.filter((s) => s.status === 'pending').length;
-  const hasNewTickets = SUPPORT_SEED.some((t) => t.status !== 'resolved');
-  const pendingWithdrawals = WITHDRAWAL_SEED.filter((w) => w.status === 'pending');
+  const hasNewTickets = tickets.some((t) => t.status !== 'resolved');
+  const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending');
   const pendingWithdrawAmount = pendingWithdrawals.reduce((sum, w) => sum + w.amount, 0);
   const stats = [
     { label: 'ผู้เข้าร่วม', value: fmt(dashboardStats.attendees), icon: Users, color: '#F07060' },

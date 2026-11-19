@@ -225,7 +225,7 @@ const noopSubscribe = () => () => {};
 export function useStaffProfile() {
   const raw = useSyncExternalStore(
     noopSubscribe,
-    () => localStorage.getItem("p31-current-user") ?? "",
+    () => sessionStorage.getItem("p31-current-user") ?? "",
     () => ""
   );
   try {

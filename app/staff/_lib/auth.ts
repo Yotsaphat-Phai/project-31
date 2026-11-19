@@ -4,6 +4,7 @@
 // ภายหลังเปลี่ยนเป็นเรียก API จริงในไฟล์นี้ไฟล์เดียว
 
 import { useCallback, useEffect, useState } from "react";
+import { logout } from "../../_lib/auth";
 
 const AUTH_KEY = "staff-auth-v1";
 const USERS_KEY = "staff-users-v1";
@@ -72,7 +73,7 @@ export function loadSession(): Session | null {
     const raw = localStorage.getItem(AUTH_KEY);
     if (raw) return JSON.parse(raw) as Session;
     // login จากหน้าหลัก (/) ด้วยบัญชี role staff → ถือว่าเข้าระบบ staff แล้ว
-    const main = localStorage.getItem(MAIN_SESSION_KEY);
+    const main = sessionStorage.getItem(MAIN_SESSION_KEY);
     if (!main) return null;
     const u = JSON.parse(main) as { id: string; email: string; name: string; role: string };
     if (u.role !== "staff") return null;
@@ -129,9 +130,7 @@ export function signUp(input: {
 
 export function signOut() {
   saveSession(null);
-  try {
-    localStorage.removeItem(MAIN_SESSION_KEY); // ออกจากระบบหลักด้วย
-  } catch {}
+  logout(); // ออกจากระบบหลักด้วย + บันทึก Audit Log
 }
 
 // Hook สำหรับหน้าที่ต้องรู้สถานะล็อกอิน

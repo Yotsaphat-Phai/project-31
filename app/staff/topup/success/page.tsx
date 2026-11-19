@@ -58,6 +58,8 @@ function TopupSuccessContent() {
   const amount = Number(params.get("amount") ?? "0") || 0;
   const method = params.get("method") ?? "credit";
   const last4 = params.get("last4") ?? "1234";
+  const isDeduct = params.get("mode") === "deduct";
+  const verb = isDeduct ? "หัก" : "เติม";
 
   const { find, loaded } = useCustomers();
   const user = find(id);
@@ -85,7 +87,7 @@ function TopupSuccessContent() {
       {/* Header */}
       <header className="flex items-start justify-between">
         <div>
-          <p className="text-[11px] text-neutral-500">เติมโทเคน</p>
+          <p className="text-[11px] text-neutral-500">{verb}โทเคน</p>
           <h1 className="mt-0.5 text-[22px] font-bold leading-tight text-[#1f2a2e]">
             สำเร็จแล้ว! <span aria-hidden>🎉</span>
           </h1>
@@ -127,7 +129,7 @@ function TopupSuccessContent() {
           <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#f0705a] text-[10px] font-bold text-white">
             ✓
           </span>
-          <span className="text-sm font-semibold text-[#1f2a2e]">เติมโทเคนสำเร็จ</span>
+          <span className="text-sm font-semibold text-[#1f2a2e]">{verb}โทเคนสำเร็จ</span>
         </div>
       </section>
 
@@ -139,7 +141,7 @@ function TopupSuccessContent() {
               <circle cx="9" cy="13" r="6" opacity="0.85" />
               <circle cx="15" cy="10" r="6" />
             </svg>
-            จำนวนโทเคนที่ได้รับ
+            {isDeduct ? "จำนวนโทเคนที่หัก" : "จำนวนโทเคนที่ได้รับ"}
           </span>
           <span className="text-sm">✦</span>
         </div>
@@ -158,7 +160,7 @@ function TopupSuccessContent() {
 
           <div className="flex-1">
             <p className="text-2xl font-extrabold leading-none text-[#1f2a2e]">
-              + {amount.toLocaleString()}{" "}
+              {isDeduct ? "−" : "+"} {amount.toLocaleString()}{" "}
               <span className="text-sm font-semibold text-neutral-500">โทเคน</span>
             </p>
             <div className="mt-1.5 flex items-center justify-between">
@@ -196,7 +198,7 @@ function TopupSuccessContent() {
           />
           <InfoRow
             label="ช่องทางการชำระเงิน"
-            value={channelText}
+            value={isDeduct ? "หักจากยอด TOKEN" : channelText}
             icon={
               <>
                 <rect x="3" y="6" width="18" height="12" rx="2" />

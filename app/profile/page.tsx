@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import UserBottomNav from "@/app/_components/UserBottomNav";
 import { getCurrentUser, logout, type SessionUser } from "../_lib/auth";
+import { getMyOrders } from "../_lib/tickets";
 
 const noopSubscribe = () => () => {};
 let cachedRaw: string | null = null;
@@ -24,7 +25,12 @@ function readUser(): SessionUser | null {
 }
 
 // TODO: ดึงจาก backend จริงภายหลัง
-const MOCK_STATS = { tokens: 0, tickets: 1, spent: 0 };
+const MOCK_STATS = { tokens: 0 };
+
+// จำนวนบัตรทั้งหมดของ user ที่ login อยู่ (นับจากทุกคำสั่งซื้อ)
+function countMyTickets(): number {
+  return getMyOrders().reduce((sum, o) => sum + o.tickets.length, 0);
+}
 
 type MenuItem = { icon: string; label: string; href: string; color: string; note?: string };
 
@@ -69,6 +75,7 @@ function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
 export default function ProfilePage() {
   const router = useRouter();
   const user = useSyncExternalStore(noopSubscribe, readUser, () => null);
+  const ticketCount = useSyncExternalStore(noopSubscribe, countMyTickets, () => 0);
 
   const initial = user?.name.trim().charAt(0) ?? "?";
 
@@ -109,7 +116,7 @@ export default function ProfilePage() {
           </Link>
           <Link href="/event/ticket" className="bg-white rounded-2xl border border-[#EEE6E6] py-4 text-center">
             <i className="bi bi-ticket-perforated-fill text-2xl text-[#EBB654]" />
-            <p className="text-lg font-bold text-[#2F2F45]">{MOCK_STATS.tickets}</p>
+            <p className="text-lg font-bold text-[#2F2F45]">{ticketCount}</p>
             <p className="text-xs text-gray-500">บัตรของฉัน</p>
           </Link>
         </div>

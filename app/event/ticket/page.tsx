@@ -71,7 +71,7 @@ function TicketStub({ t, index, count, title, onOpen }: {
 
 /* Sheet แสดง QR ทีละใบ เลื่อนซ้าย/ขวาได้ */
 function QrSheet({ order, start, onClose }: { order: Order; start: number; onClose: () => void }) {
-  const [cur, setCur] = useState(start);
+  const cur = start;
   const t = order.tickets[cur];
   const ev = events.find((e) => e.id === order.eventId);
   const n = order.tickets.length;
@@ -86,7 +86,11 @@ function QrSheet({ order, start, onClose }: { order: Order; start: number; onClo
       >
         <div className="flex items-center justify-between">
           <p className="font-bold text-[#2F2F45]">บัตรใบที่ {cur + 1} จาก {n}</p>
-          <button onClick={onClose} aria-label="ปิด" className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
+          <button
+            onClick={onClose}
+            aria-label="ปิด"
+            className="w-10 h-10 rounded-full bg-[#E5484D] text-white shadow-md flex items-center justify-center active:scale-95"
+          >
             <i className="bi bi-x-lg" />
           </button>
         </div>
@@ -106,38 +110,7 @@ function QrSheet({ order, start, onClose }: { order: Order; start: number; onClo
           <StatusChip code={t.code} dark />
         </div>
 
-        <p className="text-center text-xs text-gray-500 my-3">แสดง QR นี้ที่จุดเช็คอิน · ใช้ได้ 1 ครั้งต่อ 1 คน</p>
-
-        {n > 1 && (
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setCur((c) => Math.max(0, c - 1))}
-              disabled={cur === 0}
-              aria-label="ใบก่อนหน้า"
-              className="w-11 h-11 rounded-full bg-white flex items-center justify-center disabled:opacity-30"
-            >
-              <i className="bi bi-chevron-left" />
-            </button>
-            <div className="flex gap-1.5">
-              {order.tickets.map((x, i) => (
-                <button
-                  key={x.code}
-                  onClick={() => setCur(i)}
-                  aria-label={`ใบที่ ${i + 1}`}
-                  className={`h-2 rounded-full transition-all ${i === cur ? "w-6 bg-[#E07A68]" : "w-2 bg-gray-300"}`}
-                />
-              ))}
-            </div>
-            <button
-              onClick={() => setCur((c) => Math.min(n - 1, c + 1))}
-              disabled={cur === n - 1}
-              aria-label="ใบถัดไป"
-              className="w-11 h-11 rounded-full bg-white flex items-center justify-center disabled:opacity-30"
-            >
-              <i className="bi bi-chevron-right" />
-            </button>
-          </div>
-        )}
+        <p className="text-center text-xs text-gray-500 mt-3">แสดง QR นี้ที่จุดเช็คอิน · ใช้ได้ 1 ครั้งต่อ 1 คน</p>
       </div>
     </div>
   );

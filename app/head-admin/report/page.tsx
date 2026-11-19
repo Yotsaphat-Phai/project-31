@@ -67,7 +67,8 @@ export default function ReportPage() {
     d.setDate(d.getDate() - (6 - i));
     const logs = audit.filter((e) => dayKey(new Date(e.at)) === dayKey(d));
     return {
-      label: String(d.getDate()),
+      label: i === 6 ? "วันนี้" : d.toLocaleDateString("th-TH", { day: "numeric", month: "short" }),
+      isToday: i === 6,
       ok: logs.filter((e) => e.kind === "login").length,
       blocked: logs.filter((e) => e.kind === "login_blocked").length,
     };
@@ -130,31 +131,48 @@ export default function ReportPage() {
                 <span className="font-semibold text-orange-500">{blockedToday} ครั้ง</span>
               </div>
             </div>
-            <div className="flex items-end justify-between gap-1 h-24">
+            <p className="text-xs text-gray-500 mb-2">7 วันล่าสุด</p>
+            <div className="flex items-end justify-between gap-1">
               {perDay.map((d, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="flex items-end gap-0.5 h-16">
-                    <div
-                      className="w-2.5 rounded-t bg-[#9E4B8E]"
-                      style={{ height: `${(d.ok / maxDay) * 100}%`, minHeight: d.ok ? 3 : 0 }}
-                      title={`เข้าได้ ${d.ok} ครั้ง`}
-                    />
-                    <div
-                      className="w-2.5 rounded-t bg-orange-400"
-                      style={{ height: `${(d.blocked / maxDay) * 100}%`, minHeight: d.blocked ? 3 : 0 }}
-                      title={`ถูกปฏิเสธ ${d.blocked} ครั้ง`}
-                    />
+                <div
+                  key={i}
+                  className={`flex-1 flex flex-col items-center rounded-lg py-1 ${d.isToday ? "bg-[#F5EAFE]" : ""}`}
+                >
+                  <div className="flex items-end justify-center gap-1 h-24 w-full">
+                    {/* เข้าได้ (ม่วง) */}
+                    <div className="flex flex-col items-center justify-end h-full">
+                      {d.ok > 0 && <span className="text-[11px] font-semibold text-[#9E4B8E] mb-0.5">{d.ok}</span>}
+                      <div
+                        className="w-3 rounded-t bg-[#C58BBA]"
+                        style={{ height: `${(d.ok / maxDay) * 72}px`, minHeight: d.ok ? 4 : 0 }}
+                      />
+                    </div>
+                    {/* ถูกปฏิเสธ (ส้ม) — แสดงเฉพาะวันที่มี แท่งจะได้อยู่กลาง */}
+                    {d.blocked > 0 && (
+                      <div className="flex flex-col items-center justify-end h-full">
+                        <span className="text-[11px] font-semibold text-orange-500 mb-0.5">{d.blocked}</span>
+                        <div
+                          className="w-3 rounded-t bg-orange-300"
+                          style={{ height: `${(d.blocked / maxDay) * 72}px`, minHeight: 4 }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <span className="text-[10px] text-gray-500">{d.label}</span>
+                  <div className="w-full border-t border-gray-200" />
+                  <span
+                    className={`text-[10px] mt-1 ${d.isToday ? "font-semibold text-[#9E4B8E]" : "text-gray-500"}`}
+                  >
+                    {d.label}
+                  </span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-center gap-4 mt-2 text-[11px] text-gray-600">
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-sm bg-[#9E4B8E]" /> เข้าได้
+            <div className="flex justify-center gap-4 mt-3 text-xs text-gray-600">
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm bg-[#C58BBA]" /> เข้าได้
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-sm bg-orange-400" /> ถูกปฏิเสธ
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm bg-orange-300" /> ถูกปฏิเสธ
               </span>
             </div>
           </div>

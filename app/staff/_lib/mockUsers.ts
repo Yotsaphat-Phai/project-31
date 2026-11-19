@@ -152,6 +152,24 @@ export function useCustomers() {
   return { list: list ?? [], loaded: list !== null, find, checkIn, addPending, adjustToken };
 }
 
+// ===== ใช้นอก React hook: ร้านค้าตัด TOKEN จากเลข QR ของ user =====
+export function chargeToken(
+  id: string,
+  amount: number,
+  note: string
+): { ok: true; customer: Customer } | { ok: false; error: string } {
+  const needle = id.trim().replace(/^#/, "");
+  const list = load();
+  const cur = list.find((c) => c.id === needle);
+  if (!cur) return { ok: false, error: "ไม่พบผู้ใช้จาก QR นี้" };
+  if (amount <= 0) return { ok: false, error: "กรุณากรอกยอดชำระ" };
+  if (cur.token < amount) return { ok: false, error: `TOKEN ไม่พอ (มี ${cur.token.toLocaleString()})` };
+  const customer = { ...cur, token: cur.token - amount };
+  save(list.map((c) => (c.id === needle ? customer : c)));
+  logToken({ customerId: needle, delta: -amount, note, at: new Date().toISOString() });
+  return { ok: true, customer };
+}
+
 // ===== ประวัติ TOKEN (เติม/หัก) =====
 const TOKEN_LOG_KEY = "p31-token-log";
 

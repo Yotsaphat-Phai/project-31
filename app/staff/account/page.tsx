@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import BottomNavMain from "../_components/BottomNavMain";
-import { staffProfile } from "../_lib/mockUsers";
+import { useStaffProfile } from "../_lib/mockUsers";
 import { signOut } from "../_lib/auth";
 
 type RowProps = {
@@ -53,6 +53,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 }
 
 export default function StaffAccountPage() {
+  const staffProfile = useStaffProfile();
   const router = useRouter();
 
   const openMail = () =>

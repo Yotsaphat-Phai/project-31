@@ -1,28 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { AUDIT_KEY, parseAuditLog, type AuditEntry, type AuditKind } from "../../_lib/audit";
 
-type FilterType = "ทั้งหมด" | "บัญชี";
+type FilterType = "ทั้งหมด" | "เข้าสู่ระบบ" | "เพิ่ม" | "ระงับ/เปิด" | "ลบ/กู้คืน";
+
+const FILTER_KINDS: Record<FilterType, AuditKind[] | null> = {
+  ทั้งหมด: null,
+  เข้าสู่ระบบ: ["login", "login_blocked"],
+  เพิ่ม: ["add"],
+  "ระงับ/เปิด": ["suspend", "unsuspend"],
+  "ลบ/กู้คืน": ["trash", "restore", "purge"],
+};
+
+// หน้าตาของแต่ละประเภท
+const KIND_STYLE: Record<AuditKind, { label: string; icon: string; color: string }> = {
+  add: { label: "เพิ่มบัญชี", icon: "bi-plus-lg", color: "bg-[#2D9D8F]" },
+  suspend: { label: "ระงับบัญชี", icon: "bi-slash-circle", color: "bg-gray-400" },
+  unsuspend: { label: "เปิดใช้งานบัญชี", icon: "bi-check-lg", color: "bg-[#2D9D8F]" },
+  trash: { label: "ย้ายไปถังขยะ บัญชี", icon: "bi-trash", color: "bg-red-400" },
+  restore: { label: "กู้คืนบัญชี", icon: "bi-arrow-counterclockwise", color: "bg-blue-500" },
+  purge: { label: "ลบถาวร บัญชี", icon: "bi-x-lg", color: "bg-red-600" },
+  login: { label: "เข้าสู่ระบบ", icon: "bi-box-arrow-in-right", color: "bg-indigo-400" },
+  login_blocked: { label: "ถูกปฏิเสธการเข้าสู่ระบบ", icon: "bi-shield-lock", color: "bg-orange-400" },
+};
+
+// อ่าน log ใหม่ทุก 2 วินาที → ทำ/เปลี่ยนจากหน้าบัญชีหรือเครื่องอื่นแล้วขึ้นเองโดยไม่ต้องรีเฟรช
+function subscribe(onChange: () => void) {
+  const timer = setInterval(onChange, 2000);
+  window.addEventListener("storage", onChange);
+  return () => {
+    clearInterval(timer);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+const timeOf = (at: number) =>
+  new Date(at).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+const dateOf = (at: number) =>
+  new Date(at).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
 
 export default function AuditLogPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("ทั้งหมด");
 
-  const logs = [
-    { id: 1, action: "ระงับบัญชี Staff", user: "สมชาย ใจดี", reason: "", by: "Head Admin", time: "11:45", type: "บัญชี" as FilterType, color: "bg-gray-400", sign: "⛔" },
-    { id: 2, action: "เพิ่มบัญชี Staff", user: "มานี รักงาน", reason: "", by: "Head Admin", time: "10:20", type: "บัญชี" as FilterType, color: "bg-[#2D9D8F]", sign: "+" },
-    { id: 3, action: "เพิ่มบัญชี Vendor", user: "ร้านขนมหวาน", reason: "", by: "Head Admin", time: "09:30", type: "บัญชี" as FilterType, color: "bg-[#2D9D8F]", sign: "+" },
-    { id: 4, action: "ระงับบัญชี Vendor", user: "ร้านก๋วยเตี๋ยว", reason: "", by: "Head Admin", time: "09:05", type: "บัญชี" as FilterType, color: "bg-gray-400", sign: "⛔" },
-  ];
+  const raw = useSyncExternalStore(
+    subscribe,
+    () => localStorage.getItem(AUDIT_KEY) ?? "",
+    () => ""
+  );
+  const logs = parseAuditLog(raw);
 
+  const q = search.trim().toLowerCase();
   const filtered = logs.filter((log) => {
-    const matchFilter = filter === "ทั้งหมด" || log.type === filter;
-    const matchSearch =
-      log.action.toLowerCase().includes(search.toLowerCase()) ||
-      log.user.toLowerCase().includes(search.toLowerCase());
-    return matchFilter && matchSearch;
+    const kinds = FILTER_KINDS[filter];
+    const matchFilter = !kinds || kinds.includes(log.kind);
+    const text = `${KIND_STYLE[log.kind].label} ${log.role} ${log.user} ${log.email}`.toLowerCase();
+    return matchFilter && (!q || text.includes(q));
   });
+
+  // จัดกลุ่มตามวัน (ใหม่สุดอยู่บน)
+  const groups: { date: string; items: AuditEntry[] }[] = [];
+  for (const log of filtered) {
+    const date = dateOf(log.at);
+    const last = groups[groups.length - 1];
+    if (last && last.date === date) last.items.push(log);
+    else groups.push({ date, items: [log] });
+  }
 
   return (
     <div className="h-screen w-screen bg-[#FDF5EC] flex flex-col overflow-hidden">
@@ -43,12 +88,12 @@ export default function AuditLogPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#9E4B8E] outline-none mb-3"
-            placeholder="ค้นหาผู้ใช้ / รายการ"
+            className="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#9E4B8E] outline-none mb-3 text-gray-800 placeholder:text-gray-400"
+            placeholder="ค้นหาชื่อ / อีเมล / รายการ"
           />
 
           <div className="flex gap-1.5 mb-4 overflow-x-auto">
-            {(["ทั้งหมด", "บัญชี"] as FilterType[]).map((tab) => (
+            {(Object.keys(FILTER_KINDS) as FilterType[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
@@ -63,37 +108,45 @@ export default function AuditLogPage() {
             ))}
           </div>
 
-          <p className="text-xs text-gray-500 mb-2 font-semibold">
-            วันนี้ · 1 พ.ย. 2569
-          </p>
-
-          <div className="space-y-2 mb-4">
-            {filtered.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 text-center text-gray-400 text-sm">
-                ไม่พบรายการ
-              </div>
-            ) : (
-              filtered.map((log) => (
-                <div key={log.id} className="bg-white rounded-xl p-3 flex items-start gap-3 shadow-sm">
-                  <div className={`w-10 h-10 rounded-full ${log.color} flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}>
-                    {log.sign}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-gray-800">{log.action}</p>
-                      <span className="text-[10px] text-gray-500 flex-shrink-0">{log.time}</span>
-                    </div>
-                    <p className="text-[11px] text-gray-600 mt-0.5">
-                      ผู้ใช้: {log.user}{log.reason && ` · เหตุผล: ${log.reason}`}
-                    </p>
-                    <p className="text-[10px] text-[#9E4B8E] font-medium mt-1">
-                      โดย {log.by}
-                    </p>
-                  </div>
+          {groups.length === 0 ? (
+            <div className="bg-white rounded-xl p-6 text-center text-gray-400 text-sm">
+              {logs.length === 0
+                ? "ยังไม่มีรายการ — ลองเข้าสู่ระบบ หรือเพิ่ม/ระงับ/ลบบัญชีที่หน้าบัญชี"
+                : "ไม่พบรายการ"}
+            </div>
+          ) : (
+            groups.map((g) => (
+              <div key={g.date} className="mb-4">
+                <p className="text-xs text-gray-500 mb-2 font-semibold">{g.date}</p>
+                <div className="space-y-2">
+                  {g.items.map((log) => {
+                    const style = KIND_STYLE[log.kind];
+                    return (
+                      <div key={log.id} className="bg-white rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div
+                          className={`w-10 h-10 rounded-full ${style.color} flex items-center justify-center text-white text-lg flex-shrink-0`}
+                        >
+                          <i className={`bi ${style.icon}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-semibold text-gray-800">
+                              {style.label} {log.role}
+                            </p>
+                            <span className="text-[10px] text-gray-500 flex-shrink-0">{timeOf(log.at)}</span>
+                          </div>
+                          <p className="text-[11px] text-gray-600 mt-0.5 truncate">
+                            ผู้ใช้: {log.user} · {log.email}
+                          </p>
+                          <p className="text-[10px] text-[#9E4B8E] font-medium mt-1">โดย {log.by}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            ))
+          )}
 
         </div>
       </div>

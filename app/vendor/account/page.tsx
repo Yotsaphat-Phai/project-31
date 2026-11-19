@@ -6,7 +6,7 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, logout } from "../../_lib/auth";
-import { shops, type Shop } from "../../_lib/mock";
+import { shopFor, type Shop } from "../../_lib/mock";
 
 const noopSubscribe = () => () => {};
 
@@ -17,7 +17,7 @@ function useMyShop(): Shop {
     () => getCurrentUser()?.id ?? "",
     () => ""
   );
-  return shops.find((s) => s.vendorId === vendorId) ?? shops[0];
+  return shopFor(vendorId);
 }
 
 function MenuRow({

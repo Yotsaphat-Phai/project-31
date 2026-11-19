@@ -12,6 +12,7 @@ import {
   purgeAccount as purgeFromAuth,
   createAccount,
 } from "../_lib/auth";
+import { logAudit } from "../_lib/audit";
 
 type Role = "Admin" | "Staff" | "Vendor";
 type Filter = "ทั้งหมด" | Role | "ระงับ" | "ถังขยะ";
@@ -79,6 +80,12 @@ export default function HeadAdminPage() {
     const target = accounts.find((a) => a.id === id);
     if (!target) return;
     setAccountActive(id, !target.active);
+    logAudit({
+      kind: target.active ? "suspend" : "unsuspend",
+      role: target.role,
+      user: target.name,
+      email: target.email,
+    });
     refresh();
   };
 
@@ -94,18 +101,23 @@ export default function HeadAdminPage() {
 
     if (confirm(`ย้ายบัญชี "${name}" ไปถังขยะ?\nสามารถกู้คืนได้ภายหลัง`)) {
       setAccountTrashed(id, true);
+      if (target) logAudit({ kind: "trash", role: target.role, user: target.name, email: target.email });
       refresh();
     }
   };
 
   const restoreAccount = (id: string) => {
+    const target = accounts.find((a) => a.id === id);
     setAccountTrashed(id, false);
+    if (target) logAudit({ kind: "restore", role: target.role, user: target.name, email: target.email });
     refresh();
   };
 
   const purgeAccount = (id: string, name: string) => {
     if (confirm(`ลบบัญชี "${name}" ถาวร?\nการลบย้อนกลับไม่ได้`)) {
+      const target = accounts.find((a) => a.id === id);
       purgeFromAuth(id);
+      if (target) logAudit({ kind: "purge", role: target.role, user: target.name, email: target.email });
       refresh();
     }
   };
@@ -120,14 +132,16 @@ export default function HeadAdminPage() {
 
   const addAccount = () => {
     try {
-      createAccount({
+      const created = createAccount({
         name: newName,
         email: newEmail,
         password: newPassword,
         role: newRole.toLowerCase() as "admin" | "staff" | "vendor",
       });
+      logAudit({ kind: "add", role: newRole, user: created.name, email: created.email });
       refresh();
       closeAdd();
+      alert(`เพิ่มบัญชีแล้ว\nใช้อีเมล ${newEmail.trim().toLowerCase()} และรหัสผ่านที่ตั้งไว้ เข้าสู่ระบบได้เลย`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "เพิ่มบัญชีไม่สำเร็จ");
     }
@@ -191,7 +205,7 @@ export default function HeadAdminPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ค้นหาชื่อบัญชี"
-            className="w-full bg-white rounded-xl p-3 text-sm outline-none border border-orange-100 mb-3"
+            className="w-full bg-white rounded-xl p-3 text-sm outline-none border border-orange-100 mb-3 text-gray-800 placeholder:text-gray-400"
           />
 
           <div className="flex flex-wrap gap-1.5 mb-3">
@@ -311,7 +325,7 @@ export default function HeadAdminPage() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="เช่น สมหญิง ใจงาม"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3 text-gray-800 placeholder:text-gray-400"
             />
 
             <label className="block text-xs font-semibold text-gray-700 mb-1">อีเมล (ใช้ login)</label>
@@ -320,7 +334,7 @@ export default function HeadAdminPage() {
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="เช่น staff3@test.com"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3 text-gray-800 placeholder:text-gray-400"
             />
 
             <label className="block text-xs font-semibold text-gray-700 mb-1">รหัสผ่าน</label>
@@ -329,7 +343,7 @@ export default function HeadAdminPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="อย่างน้อย 6 ตัวอักษร"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none mb-3 text-gray-800 placeholder:text-gray-400"
             />
 
             <label className="block text-xs font-semibold text-gray-700 mb-1">ประเภท</label>

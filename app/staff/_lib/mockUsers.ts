@@ -4,7 +4,7 @@
 // ทั้งหน้าแรก, หน้าผู้เข้าร่วม, หน้าสแกน, หน้าค้นหา, หน้าเติม TOKEN ใช้ข้อมูลชุดเดียวกันหมด
 // ภายหลังเปลี่ยนเป็นเรียก API ของระบบแอดมินในไฟล์นี้ไฟล์เดียว
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 export type AttendeeKind = "VIP" | "ทั่วไป";
 
@@ -216,4 +216,30 @@ export function addCustomer(input: { name: string; tickets: number; batch?: stri
   };
   save([customer, ...list]);
   return customer;
+}
+
+
+// ข้อมูล staff ที่ login อยู่ (จากหน้า login หลัก) — ชื่อ/อีเมล/เบอร์ตรงกับบัญชีจริง
+// ยังไม่มี session → ใช้ staffProfile เดิม
+const noopSubscribe = () => () => {};
+export function useStaffProfile() {
+  const raw = useSyncExternalStore(
+    noopSubscribe,
+    () => localStorage.getItem("p31-current-user") ?? "",
+    () => ""
+  );
+  try {
+    const u = JSON.parse(raw) as { id: string; name: string; email: string; phone: string };
+    if (!u?.name) return staffProfile;
+    return {
+      ...staffProfile,
+      initials: u.name.replace(/\s+/g, "").slice(0, 2),
+      name: u.name,
+      email: u.email,
+      phone: u.phone || "-",
+      employeeId: u.id,
+    };
+  } catch {
+    return staffProfile;
+  }
 }

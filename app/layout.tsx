@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
 import SyncStore from "./_components/SyncStore";
+import SessionGuard from "./_components/SessionGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {/* ซิงก์ข้อมูลกับที่เก็บกลาง /api/store ให้หลายเครื่องเห็นข้อมูลเดียวกัน */}
-        <SyncStore>{children}</SyncStore>
+        <SyncStore>
+          {/* บัญชีถูกระงับระหว่างใช้งาน → เด้งออกไปหน้า login */}
+          <SessionGuard />
+          {children}
+        </SyncStore>
       </body>
     </html>
   );

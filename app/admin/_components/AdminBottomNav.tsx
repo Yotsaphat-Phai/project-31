@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Receipt, UserCheck, Store, ListOrdered } from 'lucide-react';
+import { LayoutGrid, Receipt, UserCheck, Store, ListOrdered, AlertCircle } from 'lucide-react';
 
 const TABS = [
   { href: '/admin', label: 'ภาพรวม', icon: LayoutGrid },
@@ -10,10 +10,14 @@ const TABS = [
   { href: '/admin/attendees', label: 'ผู้เข้าร่วม', icon: UserCheck },
   { href: '/admin/stores', label: 'ร้านค้า', icon: Store },
   { href: '/admin/orders', label: 'คำสั่งซื้อ', icon: ListOrdered },
+  { href: '/admin/support', label: 'ปัญหา', icon: AlertCircle },
 ];
 
 export default function AdminBottomNav() {
   const pathname = usePathname();
+
+  // ซ่อนแถบเมนูบนหน้า login
+  if (pathname === '/admin/login') return null;
 
   const isActive = (href: string) =>
     href === '/admin'

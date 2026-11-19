@@ -89,6 +89,24 @@
 .admin-shell .kv span:last-child { font-weight: 600; }
 
 
+/* ---------- Login ---------- */
+.admin-shell .login-main { flex: 1; overflow-y: auto; padding: 20px max(20px, calc((100% - 480px) / 2)) 32px; }
+.admin-shell .login-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.admin-shell .login-crumb { margin: 0 0 24px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.admin-shell .login-card { padding: 4px 2px 0; }
+.admin-shell .login-shield { width: 84px; height: 84px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 50%; background: #2B2D42; }
+.admin-shell .login-title { margin: 0 0 6px; font-size: 24px; font-weight: 700; text-align: center; }
+.admin-shell .login-sub { margin: 0 0 24px; color: var(--muted); font-size: 13px; text-align: center; }
+.admin-shell .otp-row { display: flex; gap: 10px; margin-top: 6px; }
+.admin-shell .otp-box { flex: 1; aspect-ratio: 1; margin: 0; padding: 0; border: 1.5px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 22px; font-weight: 700; text-align: center; min-width: 0; }
+.admin-shell .otp-box:focus { outline: 2px solid var(--blue); border-color: transparent; }
+.admin-shell .login-resend { margin: 6px 0 20px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; text-align: right; width: 100%; cursor: pointer; }
+.admin-shell .login-resend:hover { color: var(--blue); }
+.admin-shell .login-submit { width: 100%; padding: 16px; border: 0; border-radius: 16px; background: #2B2D42; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: filter .12s; }
+.admin-shell .login-submit:not(:disabled):hover { filter: brightness(1.1); }
+.admin-shell .login-note { display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; padding: 12px 14px; border-radius: 14px; background: #ECEAFA; color: var(--ink); font-size: 12px; line-height: 1.55; }
+.admin-shell .login-note strong { font-size: 12px; font-weight: 700; }
+
 /* ---------- Responsive extras ---------- */
 .admin-shell .admin-brand { display: none; }
 .admin-shell .dash-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

@@ -8,7 +8,7 @@ import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { getCurrentUser } from "../../_lib/auth";
 import { shopFor, type Shop } from "../../_lib/mock";
-import { getShopBalance } from "../../_lib/vendorBalance";
+import { getShopBalance, getShopPendingWithdraw, requestWithdraw } from "../../_lib/vendorBalance";
 
 const noopSubscribe = () => () => {};
 
@@ -46,6 +46,9 @@ export default function VendorWithdrawPage() {
   // ยอดคงเหลือเดียวกับหน้าบัญชีร้านค้า (รวมยอดขายจริง)
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const balance = mounted ? getShopBalance(shop) : 0;
+  // ถอนได้ไม่เกิน ยอดคงเหลือ − ยอดที่ขอถอนไว้แล้วรออนุมัติ
+  const pending = mounted ? getShopPendingWithdraw(shop) : 0;
+  const available = Math.max(0, balance - pending);
 
   const [step, setStep] = useState<Step>("form");
   const [amountText, setAmountText] = useState("");
@@ -63,12 +66,29 @@ export default function VendorWithdrawPage() {
   const goConfirm = () => {
     if (!amount) return setError("กรอกจำนวน TOKEN ที่ต้องการถอน");
     if (amount < MIN_WITHDRAW) return setError(`ถอนขั้นต่ำ ${MIN_WITHDRAW.toLocaleString()} TOKEN`);
-    if (amount > balance) return setError("ยอด TOKEN คงเหลือไม่พอ");
+    if (amount > available)
+      return setError(
+        pending > 0
+          ? `ถอนได้อีก ${available.toLocaleString()} TOKEN (รออนุมัติอยู่ ${pending.toLocaleString()})`
+          : "ยอด TOKEN คงเหลือไม่พอ"
+      );
     setStep("confirm");
   };
 
+  // ส่งคำขอ → บันทึกที่ key กลาง หน้า /admin/withdrawals เห็นเป็น "รออนุมัติ"
+  // ยอดคงเหลือของร้านจะลดเมื่อแอดมินกด "อนุมัติการถอน"
   const submit = () => {
-    setRequestId(`WD-${String(Date.now()).slice(-6)}`);
+    const id = `WD-${String(Date.now()).slice(-6)}`;
+    requestWithdraw({
+      id,
+      shop,
+      owner: getCurrentUser()?.name ?? shop.name,
+      amount,
+      bank: `ธนาคาร${BANK_ACCOUNT.bank}`,
+      accountNo: BANK_ACCOUNT.accountNo,
+      accountName: BANK_ACCOUNT.accountName,
+    });
+    setRequestId(id);
     setStep("done");
   };
 
@@ -162,7 +182,7 @@ export default function VendorWithdrawPage() {
                     <button
                       key={n}
                       type="button"
-                      onClick={() => setAmount(Math.min(n, balance))}
+                      onClick={() => setAmount(Math.min(n, available))}
                       className="py-2 rounded-xl text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:border-[#E0A537] active:scale-95 transition"
                     >
                       {n.toLocaleString()}
@@ -170,7 +190,7 @@ export default function VendorWithdrawPage() {
                   ))}
                   <button
                     type="button"
-                    onClick={() => setAmount(balance)}
+                    onClick={() => setAmount(available)}
                     className="py-2 rounded-xl text-sm font-semibold bg-[#FDF0DD] text-[#B7791F] active:scale-95 transition"
                   >
                     ทั้งหมด

@@ -72,7 +72,7 @@ export default function WithdrawalApproval() {
             <article key={w.id} className="card" style={{ padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span className="avatar" style={{ width: 40, height: 40, borderRadius: 10, background: '#5E8BC9', fontSize: 14 }}>
-                  {w.storeId}
+                  {w.storeId.length > 2 ? w.storeName.charAt(0) : w.storeId}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700 }}>{w.storeName}</div>

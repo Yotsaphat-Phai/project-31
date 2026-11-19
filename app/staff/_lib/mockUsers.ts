@@ -55,7 +55,7 @@ export const staffProfile = {
   employeeId: "ST-00142",
   phone: "093-913-4715",
   email: "stafflemon@test.com",
-  shift: "15:00-22:00",
+  shift: "18:00-22:00",
 };
 
 // สีพื้นของวงกลมตัวย่อ สลับให้ไม่ซ้ำกัน

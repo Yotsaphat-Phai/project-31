@@ -29,13 +29,13 @@ function EventCard({ ev }: { ev: EventItem }) {
         <div className="mt-4 space-y-2 text-[15px] text-gray-600">
           <div className="flex items-center gap-3">
             <span className="w-6 h-6 rounded-full bg-[#FBEAE5] flex items-center justify-center">
-              <span className="w-3 h-3 rounded-sm bg-[#E07A68]" />
+              <i className="bi bi-calendar-event text-xs text-[#E07A68]" />
             </span>
             {ev.dateText}
           </div>
           <div className="flex items-center gap-3">
             <span className="w-6 h-6 rounded-full bg-[#FBEAE5] flex items-center justify-center">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E07A68]" />
+              <i className="bi bi-geo-alt-fill text-xs text-[#E07A68]" />
             </span>
             {ev.venue}
           </div>

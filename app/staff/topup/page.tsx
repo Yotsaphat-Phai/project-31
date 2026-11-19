@@ -17,13 +17,13 @@ function TopupContent() {
   const userIndex = user ? list.findIndex((c) => c.id === user.id) : -1;
 
   const [amount, setAmount] = useState<number>(200);
-  const [method, setMethod] = useState<PayMethod>("credit");
+  const [method, setMethod] = useState<PayMethod>("promptpay");
   const [mode, setMode] = useState<"add" | "deduct">("add");
   const [error, setError] = useState("");
 
   useEffect(() => {
     setAmount(200);
-    setMethod("promtpay");
+    setMethod("promptpay");
     setMode("add");
     setError("");
   }, [id]);
@@ -54,18 +54,20 @@ function TopupContent() {
 
   function confirm() {
     if (!user || amount <= 0) return;
-    addPending(user.id, amount);
-    appendTopup({
-      customerId: user.id,
-      customerName: user.name,
-      customerInitials: user.initials,
-      customerKind: user.kind,
-      amount,
-      staffName: staffProfile.name,
-    });
     const delta = mode === "add" ? amount : -amount;
     const ok = adjustToken(user.id, delta, mode === "add" ? "เติม TOKEN โดย Staff" : "หัก TOKEN โดย Staff");
     if (!ok) return setError("TOKEN ไม่พอให้หัก");
+    // บันทึกประวัติการเติมฝั่ง staff (เฉพาะตอนเติม)
+    if (mode === "add") {
+      appendTopup({
+        customerId: user.id,
+        customerName: user.name,
+        customerInitials: user.initials,
+        customerKind: user.kind,
+        amount,
+        staffName: staffProfile.name,
+      });
+    }
     const qs = new URLSearchParams({
       id: user.id,
       amount: String(amount),

@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { setSession } from '../_lib/auth';
+import { getAccounts, login } from '../../_lib/auth';
 
-// ข้อมูลเข้าสู่ระบบของแอดมิน (เฉพาะเดโม่)
-const ADMIN_EMAIL = 'admin@test.com';
-const ADMIN_PASSWORD = '123456';
+// บัญชีที่เข้าได้: role admin และ head-admin จาก mock กลาง (app/_lib/mock.ts)
+// เช่น admin@test.com / 123456 , head@test.com / 123456 — OTP เดโม่ใช้ 123456
+const ADMIN_ROLES = ['admin', 'head-admin'];
 const ADMIN_OTP = '123456';
 
 /** หน้าเข้าสู่ระบบ Admin — อีเมล + รหัสผ่าน + OTP 6 หลัก */
@@ -53,11 +54,18 @@ export default function AdminLogin() {
     if (!canSubmit) return;
 
     const otpCode = otp.join('');
-    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+    const account = getAccounts().find(
+      (a) => a.email.toLowerCase() === email.trim().toLowerCase() && ADMIN_ROLES.includes(a.role)
+    );
+    if (!account) {
       setError('อีเมลผู้ดูแลไม่ถูกต้อง');
       return;
     }
-    if (password !== ADMIN_PASSWORD) {
+    if (!account.active) {
+      setError('บัญชีนี้ถูกระงับ');
+      return;
+    }
+    if (password !== account.password) {
       setError('รหัสผ่านไม่ถูกต้อง');
       return;
     }
@@ -67,7 +75,13 @@ export default function AdminLogin() {
     }
 
     setError(null);
-    setSession(email.trim().toLowerCase());
+    // บันทึก session ของระบบหลักด้วย (หน้า /head-admin เช็กจากตรงนี้)
+    login(account.email, password);
+    if (account.role === 'head-admin') {
+      router.replace('/head-admin'); // head-admin → หน้าหลักของ head-admin
+      return;
+    }
+    setSession(account.email.toLowerCase());
     router.replace('/admin');
   };
 
